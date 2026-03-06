@@ -2,7 +2,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="css/index.css">
+    <link rel="stylesheet" href="css/style.css">
     <script type="module" src="./src/main.ts" defer></script>
     <title>Merge Conflict</title>
 </head>
@@ -40,21 +40,32 @@
         </footer>
     </section>
     <section class="credits-section hidden">
-        <h1>Crédits</h1>
-        <table>
-            <thead>
-                <tr>
-                    <th>Prénom</th>
-                    <th>Nom</th>
-                    <th>Surnom</th>
-                    <th>Groupe</th>
-                    <th>Jeu préféré</th>
-                    <th>% de la note</th>
-                </tr>
-            </thead>
-            <tbody>
-            </tbody>
-        </table>
+        <div class="credits-main">
+            <h1>Crédits</h1>
+            <article>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Prénom</th>
+                            <th>Nom</th>
+                            <th>Surnom</th>
+                            <th>Groupe</th>
+                            <th>Jeu préféré</th>
+                            <th>% de la note</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </article>
+            <article>
+                <h3 class="credit-title">Médias</h3>
+                <ul class="credit-content">
+                    <li>Vidéo de fond du menu principal : https://www.youtube.com/watch?v=U4lz8MN6MQA&list=RDU4lz8MN6MQA&start_radio=1</li>
+                </ul>
+            </article>
+            <button class="credit-back">Retour</button>
+        </div>
     </section>
 </body>
 </html>
