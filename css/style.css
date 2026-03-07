@@ -182,7 +182,7 @@ footer {
   z-index: 1;
 }
 
-.credits, .credit-back {
+.credits, .credit-back, .rejouer-back {
   padding: 12px 30px;
   border: none;
   border-radius: 20px;
@@ -196,7 +196,7 @@ footer {
   box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }
 
-.credits:hover, .credit-back:hover {
+.credits:hover, .credit-back:hover, .rejouer-back:hover {
   background: rgba(255, 255, 255, 0.25);
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(0,0,0,0.3);
@@ -236,4 +236,29 @@ footer {
   position: fixed;
   bottom: 35px;
   left: 20px;
+}
+
+.rejouer-main h2 {
+  display: flex;
+  gap: 30px;
+  flex-direction: column;
+  align-items: center;
+  color: #333;
+  font-family:cursive;
+}
+
+.rejouer-main article {
+  color: var(--secondary-color);
+  background-color: rgba(255, 255, 255, 0.8);
+  padding: 2vh;
+  border-radius: 11px;
+  border-color: var(--secondary-color);
+  border-width: 3px;
+  border-style: solid;
+}
+
+.rejouer-back {
+  position:fixed;
+  left: 46.5%;
+  
 }
