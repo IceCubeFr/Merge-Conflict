@@ -1,4 +1,5 @@
 import { render } from "./credits";
+import "./Parameter";
 import { renderLeaderboard } from "./leaderboard";
 
 const creditsform = document.querySelector(".credits-form");
