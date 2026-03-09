@@ -207,16 +207,28 @@ footer {
   gap: 30px;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
+  padding-bottom: 10vh;
 }
 
 .credits-section article {
-  color: var(--secondary-color);
-  background-color: rgba(255, 255, 255, 0.8);
+  /* Effet glassmorphisme */
+  color: white;
+  background: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.15);
+
+  /* Mise en page */
   padding: 5vh;
-  border-radius: 20px;
-  border-color: var(--secondary-color);
-  border-width: 3px;
-  border-style: solid;
+  width: 90%;
+
+}
+
+.credits-section table {
+  color: white;
+  width: 100%;
 }
 
 .credits-section table thead {
