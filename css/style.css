@@ -211,7 +211,7 @@ footer {
   padding-bottom: 10vh;
 }
 
-.credits-section article {
+.glassmorphism {
   /* Effet glassmorphisme */
   color: white;
   background: rgba(0, 0, 0, 0.2);
@@ -250,27 +250,15 @@ footer {
   left: 20px;
 }
 
-.rejouer-main h2 {
+.rejouer-main {
   display: flex;
   gap: 30px;
+  text-align: center;
   flex-direction: column;
   align-items: center;
-  color: #333;
   font-family:cursive;
 }
 
-.rejouer-main article {
-  color: var(--secondary-color);
-  background-color: rgba(255, 255, 255, 0.8);
-  padding: 2vh;
-  border-radius: 11px;
-  border-color: var(--secondary-color);
-  border-width: 3px;
-  border-style: solid;
-}
-
 .rejouer-back {
-  position:fixed;
-  left: 46.5%;
-  
+  width: 20%;
 }

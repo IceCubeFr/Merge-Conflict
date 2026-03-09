@@ -42,6 +42,7 @@ overBackButton?.addEventListener('click', (event) => {
     event.preventDefault();
     mainMenuSection?.classList.remove("hidden");
     overSection.classList.add("hidden");
+    settingsBtn?.classList.remove("hidden");
     video?.setAttribute("src", "assets/DoomguyIsabelle.mp4");
 })
 
