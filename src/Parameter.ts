@@ -43,13 +43,11 @@ if (volumeSlider && video) {
             }
             event.preventDefault();
         });
-    
-    
     }
-    if (closeSettingsBtn && settingsPanel) {
-        closeSettingsBtn.addEventListener('click', (): void => {
-            settingsPanel.classList.add('hidden');
-        });
-    }
+}
 
+if (closeSettingsBtn && settingsPanel) {
+    closeSettingsBtn.addEventListener('click', (): void => {
+        settingsPanel.classList.add('hidden');
+    });
 }
