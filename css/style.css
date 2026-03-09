@@ -182,7 +182,7 @@ footer {
   z-index: 1;
 }
 
-.credits, .credit-back, .rejouer-back {
+.credits, .back-btn, .rejouer-back {
   padding: 12px 30px;
   border: none;
   border-radius: 20px;
@@ -196,13 +196,13 @@ footer {
   box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }
 
-.credits:hover, .credit-back:hover, .rejouer-back:hover {
+.credits:hover, .back-btn:hover, .rejouer-back:hover {
   background: rgba(255, 255, 255, 0.25);
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(0,0,0,0.3);
 }
 
-.credits-main {
+.credits-main, .leaderboard-main {
   display: flex;
   gap: 30px;
   flex-direction: column;
@@ -219,6 +219,7 @@ footer {
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.15);
+  border-radius: 20px;
 
   /* Mise en page */
   padding: 5vh;
@@ -226,17 +227,23 @@ footer {
 
 }
 
-.credits-section table {
+table {
   color: white;
+  border-collapse: collapse;
   width: 100%;
 }
 
-.credits-section table thead {
+table thead {
   font-size: 22px;
 }
 
-.credits-section table tr, .credits-section table th {
+table tbody tr {
+  border-top: 1px solid grey;
+}
+
+table tr, table th {
   padding: 10px 50px 10px 50px;
+  min-width: 10vh;
   text-align: center;
 }
 
@@ -244,7 +251,7 @@ footer {
   text-align: left;
 }
 
-.credit-back {
+.back-btn {
   position: fixed;
   bottom: 35px;
   left: 20px;

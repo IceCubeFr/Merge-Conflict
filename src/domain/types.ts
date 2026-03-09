@@ -6,3 +6,9 @@ export interface Developer {
     favGame:string;
     grade:number;
 }
+
+export interface BestScore {
+    pseudo:string;
+    score:number;
+    date:Date;
+}
