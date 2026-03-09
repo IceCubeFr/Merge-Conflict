@@ -21,6 +21,7 @@ const leaderboardTable = document.querySelector('.leaderboard-section table tbod
 const leaderboardBtn = document.querySelector('.leaderboard.game-btn');
 
 initializeEventListeners();
+video?.pause();
 
 creditsform?.addEventListener('submit', (event) => {
     event.preventDefault();
