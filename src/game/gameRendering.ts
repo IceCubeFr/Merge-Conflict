@@ -18,6 +18,8 @@ const canvasResizeObserver = new ResizeObserver(() => resampleCanvas());
 canvasResizeObserver.observe(canvas);
 
 function resampleCanvas() {
+	if (canvas.clientWidth === 0 || canvas.clientHeight === 0) return;
+
 	canvas.width = canvas.clientWidth;
 	canvas.height = canvas.clientHeight;
 }

@@ -27,22 +27,27 @@ document.addEventListener('keydown', event => {
 	event.preventDefault();
 	switch (event.key) {
         case 'Z':
+		case 'z' :
 		case 'ArrowUp':
 			vy = -3;
 			break;
         case 'S':
+		case 's':
 		case 'ArrowDown':
 			vy = 3;
 			break;
         case 'Q':
+		case 'q':
 		case 'ArrowLeft':
 			vx = -3;
 			break;
         case 'D':
+		case 'd':
 		case 'ArrowRight':
 			vx = 3;
 			break;
 		case 'L':
+		case 'l':
 			menuSelection('over');
 			break;
 	}
@@ -52,18 +57,22 @@ document.addEventListener('keyup', event => {
 	event.preventDefault();
 	switch (event.key) {
         case 'Z':
+		case 'z' :
 		case 'ArrowUp':
 			vy = 0;
 			break;
         case 'S':
+		case 's':
 		case 'ArrowDown':
 			vy = 0;
 			break;
         case 'Q':
+		case 'q':
 		case 'ArrowLeft':
 			vx = 0;
 			break;
         case 'D':
+		case 'd':
 		case 'ArrowRight':
 			vx = 0;
 	}

@@ -317,4 +317,7 @@ label {
 
 .game-canva {
   background-color: white;
+  border: 3px dashed #777;
+  width: 600px;
+  height: 400px;
 }

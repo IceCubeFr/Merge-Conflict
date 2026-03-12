@@ -14,6 +14,7 @@ const creditsSection = document.querySelector(".credits-section")!;
 const leaderBoardSection = document.querySelector('.leaderboard-section')!;
 const overSection = document.querySelector(".rejouer-section")!;
 const gameSection = document.querySelector(".game-section")!;
+const quitButton = document.querySelector(".game-leave-btn");
 
 const soloButton = document.querySelector(".game-btn.solo");
 const overBackButton = document.querySelector(".rejouer-back");
@@ -50,6 +51,12 @@ overBackButton?.addEventListener('click', (event) => {
     menuSelection("main");
     video?.setAttribute("src", "assets/DoomguyIsabelle.mp4");
 });
+
+quitButton?.addEventListener('click', (event) => {
+    event.preventDefault();
+    menuSelection("main");
+    video?.setAttribute("src", "assets/DoomguyIsabelle.mp4");
+})
 
 leaderboardBtn?.addEventListener('click', (event) => {
     event.preventDefault();
