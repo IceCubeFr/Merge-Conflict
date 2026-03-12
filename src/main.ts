@@ -57,6 +57,7 @@ leaderboardBtn?.addEventListener('click', (event) => {
 
 starterBtn?.addEventListener('click', (event) => {
     event.preventDefault();
+    settingsBtn?.classList.remove("hidden");
     menuSelection("main");
     video?.play();
 });
