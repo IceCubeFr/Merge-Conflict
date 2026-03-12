@@ -2,7 +2,7 @@ import { canvas, context, x, y } from "./playerMovement.ts";
 
 // Image du personnage principal
 export const image = new Image();
-image.src = '/images/monster.png';
+image.src = '../../assets/IsabIcon.png';
 image.addEventListener('load', event => {
 	requestAnimationFrame(render);
 });

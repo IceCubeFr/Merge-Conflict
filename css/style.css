@@ -17,6 +17,8 @@
 
 body {
   margin: 0;
+  font-family: "Nunito", "Arial Rounded MT Bold", "Helvetica Rounded", Arial,
+    sans-serif;
 }
 
 .parameter-icon {
@@ -204,7 +206,7 @@ footer {
   align-items: center;
 }
 
-.credits, .back-btn, .rejouer-back, .starter-btn {
+.credits, .back-btn, .rejouer-back, .starter-btn, .game-leave-btn {
   padding: 12px 30px;
   border: none;
   border-radius: 20px;
@@ -223,7 +225,7 @@ footer {
   width: 30vw;
   z-index: 1;
 }
-.credits:hover, .back-btn:hover, .rejouer-back:hover, .starter-btn:hover {
+.credits:hover, .back-btn:hover, .rejouer-back:hover, .starter-btn:hover, .game-leave-btn:hover {
   background: rgba(255, 255, 255, 0.25);
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(0,0,0,0.3);
@@ -301,4 +303,18 @@ label {
   color: white;
   font-size: 14px;
   font-weight: 600;
+}
+
+.game-content {
+  display: flex;
+  flex-direction: column;
+  z-index: 2;
+}
+
+.game-header, .game-stats {
+  display: flex;
+}
+
+.game-canva {
+  background-color: white;
 }

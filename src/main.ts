@@ -1,6 +1,7 @@
 import { render } from "./credits";
 import { initializeEventListeners } from "./Parameter";
 import { renderLeaderboard } from "./leaderboard";
+import { image } from "./game/gameRendering";
 
 const creditsform = document.querySelector(".credits-form");
 const backBtn = document.querySelectorAll(".back-btn");
@@ -12,13 +13,15 @@ const mainMenuSection = document.querySelector("section.main-menu");
 const creditsSection = document.querySelector(".credits-section")!;
 const leaderBoardSection = document.querySelector('.leaderboard-section')!;
 const overSection = document.querySelector(".rejouer-section")!;
+const gameSection = document.querySelector(".game-section")!;
 
-const overButton = document.querySelector(".game-btn.solo");
+const soloButton = document.querySelector(".game-btn.solo");
 const overBackButton = document.querySelector(".rejouer-back");
 const video = document.querySelector('.back-video,source') as HTMLVideoElement | null;
 const settingsBtn = document.getElementById('settingsBtn') as HTMLButtonElement | null;
 const leaderboardTable = document.querySelector('.leaderboard-section table tbody');
 const leaderboardBtn = document.querySelector('.leaderboard.game-btn');
+
 
 initializeEventListeners();
 video?.pause();
@@ -37,10 +40,9 @@ backBtn.forEach((btn) => {
     });
 });
 
-overButton?.addEventListener('click', (event) => {
+soloButton?.addEventListener('click', (event) => {
     event.preventDefault();
-    menuSelection("over");
-    video?.setAttribute("src", "assets/DoomEnd.mp4");
+    menuSelection("game");
 });
 
 overBackButton?.addEventListener('click', (event) => {
@@ -62,32 +64,34 @@ starterBtn?.addEventListener('click', (event) => {
 });
 
 export function menuSelection(menu:string) {
+    starterSection?.classList.add("hidden");
+    mainMenuSection?.classList.add("hidden");
+    overSection.classList.add("hidden");
+    settingsBtn?.classList.add("hidden");
+    creditsSection.classList.add("hidden");
+    leaderBoardSection.classList.add("hidden");
+    gameSection.classList.add('hidden');
     switch(menu) {
         case "main":
-            starterSection?.classList.add("hidden");
             mainMenuSection?.classList.remove("hidden");
-            overSection.classList.add("hidden");
             settingsBtn?.classList.remove("hidden");
-            creditsSection.classList.add("hidden");
-            leaderBoardSection.classList.add("hidden");
             break;
         case "credits":
-            mainMenuSection?.classList.add("hidden");
-            settingsBtn?.classList.add("hidden");
             creditsSection.classList.remove("hidden");
             break;
         case "over":
-            mainMenuSection?.classList.add("hidden");
-            overSection.classList.remove("hidden");
-            settingsBtn?.classList.add("hidden");
+            overSection.classList.remove('hidden');
+            video?.setAttribute("src", "assets/DoomEnd.mp4");
             break;
         case "leaderboard":
-            mainMenuSection?.classList.add("hidden");
             leaderBoardSection.classList.remove("hidden");
-            settingsBtn?.classList.add("hidden");
+            break;
+        case "game":
+            gameSection.classList.remove("hidden");
             break;
         default:
             console.error("Mauvais appel de menuSelection");
             break;
     }
 }
+

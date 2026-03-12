@@ -1,4 +1,4 @@
-export const canvas = document.querySelector<HTMLCanvasElement>('.gameCanvas')!,
+export const canvas = document.querySelector<HTMLCanvasElement>('.game-canva')!,
 	context = canvas.getContext('2d')!;
 
 
@@ -42,7 +42,7 @@ document.addEventListener('keydown', event => {
 		case 'ArrowRight':
 			vx = 3;
 			break;
-		case 'Q':
+		case 'L':
 			menuSelection('over');
 			break;
 	}
