@@ -24,7 +24,6 @@ function move() {
 setInterval(move, 1000 / 60);
 
 document.addEventListener('keydown', event => {
-	event.preventDefault();
 	switch (event.key) {
         case 'Z':
 		case 'z' :
