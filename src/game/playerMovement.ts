@@ -53,7 +53,6 @@ document.addEventListener('keydown', event => {
 });
 
 document.addEventListener('keyup', event => {
-	event.preventDefault();
 	switch (event.key) {
         case 'Z':
 		case 'z' :

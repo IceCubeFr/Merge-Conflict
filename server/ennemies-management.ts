@@ -1,5 +1,5 @@
-import { Ennemi } from "../common/types";
-import { io } from "./index";
+import { Ennemi } from "../common/types.ts";
+import { io } from "./index.ts";
 
 
 const rightWall:number = 1980;
@@ -12,6 +12,7 @@ function autoSpawn() {
         ennemies.push(newEnnemi);
         io.emit("ennemiEvent", ennemies);
         console.log(`Un ennemi est apparu en (${newEnnemi.posX}, ${newEnnemi.posY})`);
+        console.log(`ennemies : ${ennemies}`);
     }
 }
 setInterval(autoSpawn, 30000);
@@ -21,7 +22,6 @@ function autoMove() {
         ennemies.forEach((ennemi) => {
             if(ennemi.posX > rightWall/2) {
                 ennemi.move();
-                console.log("Ennemi bougé");
             }
         });
         io.emit("ennemiEvent", ennemies);
@@ -31,7 +31,9 @@ setInterval(autoMove, 100);
 
 export function startPlaying() {
     playing = true;
+    console.log("Début du jeu");
 }
 export function stopPlaying() {
     playing = false;
+    console.log("Fin du jeu");
 }

@@ -1,6 +1,6 @@
 import http from 'http';
 import { Server as IOServer } from 'socket.io';
-import { startPlaying, stopPlaying } from './ennemies-management';
+import { startPlaying, stopPlaying } from './ennemies-management.ts';
 
 const name: string = process.argv[2];
 
