@@ -1,10 +1,9 @@
 import { render } from "./credits";
 import { initializeEventListeners } from "./Parameter";
 import { renderLeaderboard } from "./leaderboard";
-import { player } from "./game/gameRendering";
-import { io } from "socket.io-client";
-
-const socket = io(window.location.hostname + ':8080');
+import { player, resetRenderedGameState } from "./game/gameRendering";
+import { resetPlayerPosition } from "./game/playerMovement";
+import { socket } from "./socket";
 
 const creditsform = document.querySelector(".credits-form");
 const backBtn = document.querySelectorAll(".back-btn");
@@ -48,6 +47,7 @@ backBtn.forEach((btn) => {
 
 soloButton?.addEventListener('click', (event) => {
     event.preventDefault();
+    startNewGame();
     menuSelection("game");
     if(pseudoInput?.value && pseudoInput.value.length > 0) {
         player.setPseudo(pseudoInput?.value);
@@ -65,14 +65,15 @@ soloButton?.addEventListener('click', (event) => {
 
 overBackButton?.addEventListener('click', (event) => {
     event.preventDefault();
+    resetCurrentGame();
     menuSelection("main");
     video?.setAttribute("src", "assets/DoomguyIsabelle.mp4");
 });
 
 quitButton?.addEventListener('click', (event) => {
     event.preventDefault();
+    resetCurrentGame();
     menuSelection("main");
-    socket.emit("stopPlaying");
     video?.setAttribute("src", "assets/DoomguyIsabelle.mp4");
 })
 
@@ -88,6 +89,18 @@ starterBtn?.addEventListener('click', (event) => {
     menuSelection("main");
     video?.play();
 });
+
+function resetCurrentGame() {
+    resetPlayerPosition();
+    resetRenderedGameState();
+    socket.emit("stopPlaying");
+}
+
+function startNewGame() {
+    resetPlayerPosition();
+    resetRenderedGameState();
+    socket.emit("stopPlaying");
+}
 
 export function menuSelection(menu:string) {
     starterSection?.classList.add("hidden");

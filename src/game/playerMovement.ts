@@ -8,15 +8,22 @@ export let x: number = 0,
  y: number = 0,
  vy: number = 0;
 
-import { image } from "./gameRendering";
+import { PLAYER_RENDER_HEIGHT, PLAYER_RENDER_WIDTH } from "./gameRendering";
 import { menuSelection } from "../main";
+
+export function resetPlayerPosition() {
+	vx = 0;
+	vy = 0;
+	x = 0;
+	y = 0;
+}
 
 // Gestion du mouvement du personnage
 function move() {
-	if (x >= canvas.width - image.width && vx > 0) x -= 2 * vx;
+	if (x >= canvas.width - PLAYER_RENDER_WIDTH && vx > 0) x -= 2 * vx;
 	else if (x <= 0 && vx < 0) x -= 2 * vx;
 
-	if (y >= canvas.height - image.height && vy > 0) y -= 2 * vy;
+	if (y >= canvas.height - PLAYER_RENDER_HEIGHT && vy > 0) y -= 2 * vy;
 	else if (y <= 0 && vy < 0) y -= 2 * vy;
 	x += vx;
 	y += vy;
