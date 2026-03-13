@@ -21,3 +21,4 @@ io.on('connection', socket => {
 		console.log(`Déconnexion du client ${socket.id}`);
 	});
 });
+

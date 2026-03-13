@@ -2,7 +2,7 @@ import { canvas, context, x, y } from "./playerMovement.ts";
 
 // Image du personnage principal
 export const image = new Image();
-image.src = '../../assets/IsabIcon.png';
+image.src = '../../assets/character/isabelle/MooveToRight1.png';
 image.addEventListener('load', event => {
 	requestAnimationFrame(render);
 });
