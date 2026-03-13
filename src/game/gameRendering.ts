@@ -4,7 +4,7 @@ import { canvas, context, x, y } from "./playerMovement.ts";
 // Image du personnage principal
 export const player:Player = new Player();
 export const image = new Image();
-image.src = '../../assets/character/isabelle/mtr1.png';
+image.src = '../../assets/character/isabelle/RIGHT/mtr1.png';
 player.models.push(image);
 player.models[0].addEventListener('load', () => {
 	requestAnimationFrame(render);
