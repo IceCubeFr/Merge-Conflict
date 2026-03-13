@@ -12,7 +12,7 @@ export let xb: number = 0,
 export const activeBullets: { bx: number, by: number }[] = [];
 
 function bulletSpawn() {
-    activeBullets.push({ bx: player.posX + 50, by: player.posY + 20 });
+    activeBullets.push({ bx: player.posX + 50, by: player.posY + 185 });
 }
 
 export function updateBullets() {

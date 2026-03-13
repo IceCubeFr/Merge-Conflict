@@ -114,6 +114,7 @@ export function menuSelection(menu:string) {
             break;
         case "game":
             gameSection.classList.remove("hidden");
+            video?.setAttribute("src", "assets/DoomAmbience.mp4");
             socket.emit("startPlaying");
             break;
         default:
