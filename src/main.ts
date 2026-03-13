@@ -2,6 +2,9 @@ import { render } from "./credits";
 import { initializeEventListeners } from "./Parameter";
 import { renderLeaderboard } from "./leaderboard";
 import { image } from "./game/gameRendering";
+import { io } from "socket.io-client";
+
+const socket = io(window.location.hostname + ':8080');
 
 const creditsform = document.querySelector(".credits-form");
 const backBtn = document.querySelectorAll(".back-btn");
