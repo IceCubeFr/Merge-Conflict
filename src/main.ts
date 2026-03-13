@@ -27,6 +27,7 @@ const leaderboardTable = document.querySelector('.leaderboard-section table tbod
 const leaderboardBtn = document.querySelector('.leaderboard.game-btn');
 
 const pseudoInput = document.querySelector<HTMLInputElement>(".pseudo");
+const pseudoDisplay = document.querySelector(".pseudo-displayer");
 
 initializeEventListeners();
 video?.pause();
@@ -50,6 +51,15 @@ soloButton?.addEventListener('click', (event) => {
     menuSelection("game");
     if(pseudoInput?.value && pseudoInput.value.length > 0) {
         player.setPseudo(pseudoInput?.value);
+        
+    }
+    if(pseudoDisplay){
+        const pseudo = player.pseudo;
+        if(pseudo.length > 12) {
+            pseudoDisplay.innerHTML = `Joueur : ${pseudo.substring(0, 12)}...`;
+        } else {
+            pseudoDisplay.innerHTML = `Joueur : ${pseudo}`;
+        }
     }
 });
 
