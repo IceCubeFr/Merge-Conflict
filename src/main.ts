@@ -58,6 +58,7 @@ overBackButton?.addEventListener('click', (event) => {
 quitButton?.addEventListener('click', (event) => {
     event.preventDefault();
     menuSelection("main");
+    socket.emit("stopPlaying");
     video?.setAttribute("src", "assets/DoomguyIsabelle.mp4");
 })
 
@@ -99,6 +100,7 @@ export function menuSelection(menu:string) {
             break;
         case "game":
             gameSection.classList.remove("hidden");
+            socket.emit("startPlaying");
             break;
         default:
             console.error("Mauvais appel de menuSelection");
