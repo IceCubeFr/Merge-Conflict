@@ -13,14 +13,22 @@ export interface BestScore {
     date:Date;
 }
 
-export default class Player {
+export class Player {
+    // Idée : Ajouter des types de projectile avec effets différents
+    // Exemple : type électrique qui touche plusieurs ennemis comme l'électro-sorcier
     health: number;
     score: number;
+    shootSpeed: number;
+    projectileSize: number;
+    projectileDamage:number;
     models = [];
 
     constructor() {
         this.health = 3;
         this.score = 0;
+        this.shootSpeed = 10;
+        this.projectileSize = 5;
+        this.projectileDamage = 1;
     }
 
     takeHealth() {
@@ -36,5 +44,17 @@ export default class Player {
 
     giveHealth(hp:number) {
         this.health += hp;
+    }
+
+    giveShootSpeed(ssp:number) {
+        this.shootSpeed += ssp;
+    }
+    
+    giveBiggerProjectiles(pjSize:number) {
+        this.projectileSize += pjSize;
+    } 
+
+    shoot() {
+        console.log("Time to bleed !");
     }
 }

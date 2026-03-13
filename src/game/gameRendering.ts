@@ -1,8 +1,11 @@
+import { Player } from "../../common/types.ts";
 import { canvas, context, x, y } from "./playerMovement.ts";
 
 // Image du personnage principal
+export const player:Player = new Player();
 export const image = new Image();
 image.src = '../../assets/IsabIcon.png';
+player.models.push(image);
 image.addEventListener('load', event => {
 	requestAnimationFrame(render);
 });
