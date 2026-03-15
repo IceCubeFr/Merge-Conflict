@@ -55,7 +55,6 @@ export class Player {
 
     takeHealth() {
         if(!this.invincibility) {
-            console.log(`Vie perdue. Il reste ${this.health} coeurs`);
             this.health--;
             this.invincibility = true;
             setTimeout(() => {
