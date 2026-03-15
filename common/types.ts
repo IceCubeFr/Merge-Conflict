@@ -34,7 +34,8 @@ export class Player {
     posY:number;
     pseudo: string;
     health: number;
-    score: number;
+    //score: number;
+    killedEnnemies: number;
     invincibility:boolean;
     shootSpeed: number;
     projectileSize: number;
@@ -45,12 +46,17 @@ export class Player {
         this.posX = posX;
         this.posY = posY;
         this.health = 3;
-        this.score = 0;
+        //this.score = 0;
         this.shootSpeed = 10;
         this.projectileSize = 5;
         this.projectileDamage = 1;
         this.pseudo = "Guest";
         this.invincibility = false;
+        this.killedEnnemies = 0;
+    }
+
+    ennemyKilled() {
+        this.killedEnnemies++;
     }
 
     takeHealth() {
@@ -115,13 +121,5 @@ export class Ennemi {
 
     hurt() {
         this.health--;
-        if(this.health === 0) {
-            this.kill();
-        }
-        console.log("Un ennemi a été touché");
-    }
-
-    kill() {
-        console.log("Un ennemi est mort");
     }
 }

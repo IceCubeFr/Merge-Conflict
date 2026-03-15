@@ -17,7 +17,7 @@ const hearts = document.querySelectorAll(".game-stat-heart");
 export const player:Player = new Player(0, 0);
 export const image = new Image();
 const ennemiImage = new Image();
-let ennemies: Pick<Ennemi, "posX" | "posY">[] = [];
+let ennemies: Ennemi[] = [];
 
 image.src = '../../assets/character/isabelle/RIGHT/mtr1.png';
 ennemiImage.src = '../../assets/character/ennemi/mob1/mob1.png';
@@ -26,14 +26,16 @@ player.models[0].addEventListener('load', () => {
 	requestAnimationFrame(render);
 }); 
 
-socket.on("ennemiEvent", (updatedEnnemies: Pick<Ennemi, "posX" | "posY">[]) => {
+socket.on("ennemiEvent", (updatedEnnemies: Ennemi[]) => {
 	ennemies = updatedEnnemies;
 });
+
+socket.on
 
 export function resetRenderedGameState() {
 	ennemies = [];
 	player.health = 3;
-	player.score = 0;
+	player.killedEnnemies = 0;
 }
 
 bullet.addEventListener('load', () => {
@@ -73,7 +75,7 @@ function bulletsAreColliding(posX:number, posY:number) {
     }
     return false;
 		
-    };
+};
 
 
 function drawHearts() {
@@ -99,8 +101,9 @@ function drawEnnemies() {
 
         if (bulletsAreColliding(renderX, renderY)) {
 			socket.emit("enemyHurt", i);
-            player.score+=100;
-            console.log("Un ennemi a été touché ! Score :", player.score);
+			if(ennemi.health <= 0) {
+				player.ennemyKilled();
+			}
         }
 
 		if(areColliding(renderX, renderY)) {
