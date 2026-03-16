@@ -8,7 +8,12 @@ export let x: number = 0,
  y: number = 0,
  vy: number = 0;
 
-import { menuSelection } from "../main";
+let mouseTargetX: number | null = null,
+ mouseTargetY: number | null = null;
+
+const KEYBOARD_MOVE_SPEED = 3;
+
+import { getInputMode } from "../Parameter";
 import { PLAYER_RENDER_HEIGHT, PLAYER_RENDER_WIDTH} from "./gameRendering";
 
 export function resetPlayerPosition() {
@@ -16,10 +21,43 @@ export function resetPlayerPosition() {
 	vy = 0;
 	x = 0;
 	y = 0;
+	mouseTargetX = null;
+	mouseTargetY = null;
+}
+
+function clampPosition() {
+	x = Math.max(0, Math.min(x, canvas.width - PLAYER_RENDER_WIDTH));
+	y = Math.max(0, Math.min(y, canvas.height - PLAYER_RENDER_HEIGHT));
+}
+
+function moveWithMouse() {
+	if (mouseTargetX === null || mouseTargetY === null) {
+		return;
+	}
+
+	const diffX = mouseTargetX - x;
+	const diffY = mouseTargetY - y;
+	const distance = Math.hypot(diffX, diffY);
+
+	if (distance < 0.1) {
+		return;
+	}
+
+	const step = Math.min(KEYBOARD_MOVE_SPEED, distance);
+	x += (diffX / distance) * step;
+	y += (diffY / distance) * step;
+	clampPosition();
 }
 
 // Gestion du mouvement du personnage
 function move() {
+	if (getInputMode() === "mouse") {
+		vx = 0;
+		vy = 0;
+		moveWithMouse();
+		return;
+	}
+
 	if (x >= canvas.width - PLAYER_RENDER_WIDTH && vx > 0) x -= 2 * vx;
 	else if (x <= 0 && vx < 0) x -= 2 * vx;
 
@@ -27,39 +65,44 @@ function move() {
 	else if (y <= 0 && vy < 0) y -= 2 * vy;
 	x += vx;
 	y += vy;
+	clampPosition();
 }
 setInterval(move, 1000 / 60);
 
 document.addEventListener('keydown', event => {
+	if (getInputMode() !== "keyboard") {
+		return;
+	}
+
 	switch (event.key) {
         case 'Z':
 		case 'z' :
 		case 'ArrowUp':
-			vy = -3;
+			vy = -KEYBOARD_MOVE_SPEED;
 			break;
         case 'S':
 		case 's':
 		case 'ArrowDown':
-			vy = 3;
+			vy = KEYBOARD_MOVE_SPEED;
 			break;
         case 'Q':
 		case 'q':
 		case 'ArrowLeft':
-			vx = -3;
+			vx = -KEYBOARD_MOVE_SPEED;
 			break;
         case 'D':
 		case 'd':
 		case 'ArrowRight':
-			vx = 3;
-			break;
-		case 'L':
-		case 'l':
-			menuSelection('over');
+			vx = KEYBOARD_MOVE_SPEED;
 			break;
 	}
 });
 
 document.addEventListener('keyup', event => {
+	if (getInputMode() !== "keyboard") {
+		return;
+	}
+
 	switch (event.key) {
         case 'Z':
 		case 'z' :
@@ -81,5 +124,21 @@ document.addEventListener('keyup', event => {
 		case 'ArrowRight':
 			vx = 0;
 	}
+});
+
+canvas.addEventListener("mousemove", (event) => {
+	if (getInputMode() !== "mouse") {
+		return;
+	}
+
+	const rect = canvas.getBoundingClientRect();
+	mouseTargetX = event.clientX - rect.left - PLAYER_RENDER_WIDTH / 2;
+	mouseTargetY = event.clientY - rect.top - PLAYER_RENDER_HEIGHT / 2;
+	clampPosition();
+});
+
+window.addEventListener("gameSettingsApplied", () => {
+	vx = 0;
+	vy = 0;
 });
 

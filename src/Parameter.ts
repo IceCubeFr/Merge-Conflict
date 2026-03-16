@@ -1,74 +1,139 @@
-const video = document.getElementById('bgVideo') as HTMLVideoElement | null;
-const volumeSlider = document.getElementById('volumeControl') as HTMLInputElement | null;
-const settingsBtn = document.getElementById('settingsBtn') as HTMLButtonElement | null;
-const settingsPanel = document.getElementById('settingsPanel') as HTMLDivElement | null;
-const inputKeyboard = document.getElementById('inputKeyboard') as HTMLInputElement | null;
-const inputMouse = document.getElementById('inputMouse') as HTMLInputElement | null;
-const closeSettingsBtn = document.getElementById('close-settings') as HTMLButtonElement | null;
+type InputMode = "keyboard" | "mouse";
 
-function initializeVolume(): void {
-    if (video && volumeSlider) {
-        video.volume = parseFloat(volumeSlider.value);
+interface GameSettings {
+    volume: number;
+    inputMode: InputMode;
+}
+
+const SETTINGS_STORAGE_KEY = "merge-conflict-settings";
+const DEFAULT_SETTINGS: GameSettings = {
+    volume: 0.5,
+    inputMode: "keyboard",
+};
+
+const video = document.getElementById("bgVideo") as HTMLVideoElement | null;
+const volumeSlider = document.getElementById("volumeControl") as HTMLInputElement | null;
+const settingsBtn = document.getElementById("settingsBtn") as HTMLElement | null;
+const settingsPanel = document.getElementById("settingsPanel") as HTMLDivElement | null;
+const inputKeyboard = document.getElementById("inputKeyboard") as HTMLInputElement | null;
+const inputMouse = document.getElementById("inputMouse") as HTMLInputElement | null;
+const closeSettingsBtn = document.getElementById("close-settings") as HTMLButtonElement | null;
+
+let appliedSettings: GameSettings = loadSettings();
+let draftSettings: GameSettings = { ...appliedSettings };
+
+function loadSettings(): GameSettings {
+    const rawSettings = localStorage.getItem(SETTINGS_STORAGE_KEY);
+    if (!rawSettings) {
+        return { ...DEFAULT_SETTINGS };
+    }
+
+    try {
+        const parsed = JSON.parse(rawSettings) as Partial<GameSettings>;
+        const inputMode = parsed.inputMode === "mouse" ? "mouse" : "keyboard";
+        const volume = Number.isFinite(parsed.volume)
+            ? Math.min(1, Math.max(0, parsed.volume as number))
+            : DEFAULT_SETTINGS.volume;
+
+        return {
+            volume,
+            inputMode,
+        };
+    } catch {
+        return { ...DEFAULT_SETTINGS };
     }
 }
 
+function saveSettings(settings: GameSettings): void {
+    localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
+}
 
-function toggleSettingsPanel(): void {
-    if (settingsPanel) {
-        settingsPanel.classList.toggle('hidden');
+function syncControlsFromSettings(settings: GameSettings): void {
+    if (volumeSlider) {
+        volumeSlider.value = settings.volume.toString();
+    }
+    if (inputKeyboard) {
+        inputKeyboard.checked = settings.inputMode === "keyboard";
+    }
+    if (inputMouse) {
+        inputMouse.checked = settings.inputMode === "mouse";
     }
 }
 
-function handleVolumeChange(event: Event): void {
-    if (!video) return;
-    
-    const target = event.target as HTMLInputElement;
-    const volumeValue: number = parseFloat(target.value);
-    
-    video.volume = volumeValue;
-    video.muted = volumeValue === 0;
+function applySettingsToMedia(settings: GameSettings): void {
+    if (!video) {
+        return;
+    }
+
+    video.volume = settings.volume;
+    video.muted = settings.volume === 0;
 }
 
-function handleKeyboardModeChange(event: Event): void {
-    if (inputKeyboard?.checked) {
-        console.log('Mode de contrôle : Clavier');
-    }
-    event.preventDefault();
+function publishSettings(): void {
+    window.dispatchEvent(new CustomEvent("gameSettingsApplied", { detail: { ...appliedSettings } }));
 }
 
-function handleMouseModeChange(event: Event): void {
-    if (inputMouse?.checked) {
-        console.log('Mode de contrôle : Souris');
+function openSettingsPanel(): void {
+    if (!settingsPanel) {
+        return;
     }
-    event.preventDefault();
+
+    draftSettings = { ...appliedSettings };
+    syncControlsFromSettings(draftSettings);
+    settingsPanel.classList.remove("hidden");
 }
 
 function closeSettingsPanel(): void {
     if (settingsPanel) {
-        settingsPanel.classList.add('hidden');
+        settingsPanel.classList.add("hidden");
     }
 }
 
+function commitSettings(): void {
+    appliedSettings = { ...draftSettings };
+    saveSettings(appliedSettings);
+    applySettingsToMedia(appliedSettings);
+    publishSettings();
+    closeSettingsPanel();
+}
+
+function handleVolumeInput(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    const value = parseFloat(target.value);
+    draftSettings.volume = Number.isFinite(value) ? Math.min(1, Math.max(0, value)) : draftSettings.volume;
+}
+
+function handleInputModeChange(): void {
+    draftSettings.inputMode = inputMouse?.checked ? "mouse" : "keyboard";
+}
+
+export function getInputMode(): InputMode {
+    return appliedSettings.inputMode;
+}
+
 export function initializeEventListeners(): void {
-    initializeVolume();
-    
+    syncControlsFromSettings(appliedSettings);
+    applySettingsToMedia(appliedSettings);
+
     if (settingsBtn) {
-        settingsBtn.addEventListener('click', toggleSettingsPanel);
+        settingsBtn.addEventListener("click", openSettingsPanel);
     }
-    
+
     if (volumeSlider) {
-        volumeSlider.addEventListener('input', handleVolumeChange);
+        volumeSlider.addEventListener("input", handleVolumeInput);
     }
-    
+
     if (inputKeyboard) {
-        inputKeyboard.addEventListener('change', handleKeyboardModeChange);
+        inputKeyboard.addEventListener("change", handleInputModeChange);
     }
-    
+
     if (inputMouse) {
-        inputMouse.addEventListener('change', handleMouseModeChange);
+        inputMouse.addEventListener("change", handleInputModeChange);
     }
-    
+
     if (closeSettingsBtn) {
-        closeSettingsBtn.addEventListener('click', closeSettingsPanel);
+        closeSettingsBtn.addEventListener("click", commitSettings);
     }
+
+    publishSettings();
 }

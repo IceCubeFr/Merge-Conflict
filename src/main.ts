@@ -29,9 +29,9 @@ const leaderboardBtn = document.querySelector('.leaderboard.game-btn');
 const pseudoInput = document.querySelector<HTMLInputElement>(".pseudo");
 const pseudoDisplay = document.querySelector(".pseudo-displayer");
 
-
-
 initializeEventListeners();
+
+
 video?.pause();
 
 creditsform?.addEventListener('submit', (event) => {
@@ -111,19 +111,23 @@ export function menuSelection(menu:string) {
             break;
         case "credits":
             creditsSection.classList.remove("hidden");
+            settingsBtn?.classList.remove("hidden");
             break;
         case "over":
             finalizeCurrentRun(true);
             stopGameTimer();
             socket.emit("stopPlaying");
             overSection.classList.remove('hidden');
+            settingsBtn?.classList.remove("hidden");
             video?.setAttribute("src", "assets/DoomEnd.mp4");
             break;
         case "leaderboard":
             leaderBoardSection.classList.remove("hidden");
+            settingsBtn?.classList.remove("hidden");
             break;
         case "game":
             gameSection.classList.remove("hidden");
+            settingsBtn?.classList.remove("hidden");
             video?.setAttribute("src", "assets/DoomAmbience.mp4");
             startGameTimer();
             socket.emit("startPlaying");
