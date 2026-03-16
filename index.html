@@ -39,6 +39,13 @@
                     <div class="game-stat-item">
                         <p class="game-stat-label game-score-label">Score : 0</p>
                     </div>
+                    <!-- Barre de vie de l'allié (coop uniquement) -->
+                    <div class="game-stat-item ally-health-container hidden">
+                        <p class="game-stat-label">Allié : </p>
+                        <img class="game-stat-heart ally-heart" src="/assets/HeartIcon.png" alt="coeur allié" height="50px">
+                        <img class="game-stat-heart ally-heart" src="/assets/HeartIcon.png" alt="coeur allié" height="50px">
+                        <img class="game-stat-heart ally-heart" src="/assets/HeartIcon.png" alt="coeur allié" height="50px">
+                    </div>
                 </div>
                 <button class="game-leave-btn">Quitter</button>
             </header>
@@ -151,6 +158,42 @@
                 </table>
             </article>
             <button class="back-btn">Retour</button>
+        </div>
+    </section>
+    <!-- Menu Coop: choix héberger/rejoindre -->
+    <section class="coop-menu-section hidden">
+        <div class="coop-menu-main">
+            <h1>Mode Coopératif</h1>
+            <div class="coop-buttons">
+                <button class="game-btn coop-host-btn">Héberger une partie</button>
+                <button class="game-btn coop-join-btn">Rejoindre une partie</button>
+            </div>
+            <button class="back-btn coop-back-btn">Retour</button>
+        </div>
+    </section>
+    <!-- Salle d'attente pour l'hôte -->
+    <section class="waiting-room-section hidden">
+        <div class="waiting-room-main">
+            <h1>En attente d'un joueur...</h1>
+            <div class="glassmorphism waiting-info">
+                <p class="waiting-room-id">Room: <span class="room-id-display">---</span></p>
+                <div class="loader"></div>
+                <p class="waiting-status">En attente d'un coéquipier...</p>
+            </div>
+            <button class="back-btn cancel-room-btn">Annuler</button>
+        </div>
+    </section>
+    <!-- Liste des rooms disponibles -->
+    <section class="room-list-section hidden">
+        <div class="room-list-main">
+            <h1>Parties disponibles</h1>
+            <article class="glassmorphism rooms-container">
+                <div class="rooms-list">
+                    <p class="no-rooms-msg">Aucune partie disponible...</p>
+                </div>
+                <button class="refresh-rooms-btn">Actualiser</button>
+            </article>
+            <button class="back-btn rooms-back-btn">Retour</button>
         </div>
     </section>
 </body>

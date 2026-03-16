@@ -17,6 +17,7 @@ export interface LeaderboardEntry {
     pseudo:string;
     score:number;
     date:string;
+    mode: 'solo' | 'coop';
 }
 
 export interface GameRunStats {

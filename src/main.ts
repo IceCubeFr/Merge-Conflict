@@ -5,27 +5,41 @@ import { player } from "./game/gameRendering";
 import { socket } from "./socket";
 import { startNewGame, resetCurrentGame, finalizeCurrentRun, stopGameTimer, startGameTimer } from "./game/runManagement";
 
-// Game mode tracking
 export let isCoopMode = false;
+export let currentRoomId: string | null = null;
 
 export function setCoopMode(value: boolean) {
     isCoopMode = value;
 }
 
+export function setCurrentRoomId(roomId: string | null) {
+    currentRoomId = roomId;
+}
 
 const creditsform = document.querySelector(".credits-form");
-const backBtn = document.querySelectorAll(".back-btn");
-
+const backBtn = document.querySelectorAll(".back-btn:not(.coop-back-btn):not(.cancel-room-btn):not(.rooms-back-btn)");
 const starterBtn = document.querySelector(".starter-btn");
 const starterSection = document.querySelector(".starter");
-
 const mainMenuSection = document.querySelector("section.main-menu");
 const creditsSection = document.querySelector(".credits-section")!;
 const leaderBoardSection = document.querySelector('.leaderboard-section')!;
 const overSection = document.querySelector(".rejouer-section")!;
 const gameSection = document.querySelector(".game-section")!;
 const quitButton = document.querySelector(".game-leave-btn");
-
+const coopMenuSection = document.querySelector(".coop-menu-section")!;
+const waitingRoomSection = document.querySelector(".waiting-room-section")!;
+const roomListSection = document.querySelector(".room-list-section")!;
+const coopHostBtn = document.querySelector(".coop-host-btn");
+const coopJoinBtn = document.querySelector(".coop-join-btn");
+const coopBackBtn = document.querySelector(".coop-back-btn");
+const cancelRoomBtn = document.querySelector(".cancel-room-btn");
+const roomsBackBtn = document.querySelector(".rooms-back-btn");
+const refreshRoomsBtn = document.querySelector(".refresh-rooms-btn");
+const roomIdDisplay = document.querySelector(".room-id-display");
+const roomsList = document.querySelector(".rooms-list");
+const noRoomsMsg = document.querySelector(".no-rooms-msg");
+const allyHealthContainer = document.querySelector(".ally-health-container");
+const allyHearts = document.querySelectorAll(".ally-heart");
 const soloButton = document.querySelector(".game-btn.solo");
 const coopButton = document.querySelector(".game-btn.coop");
 const overBackButton = document.querySelector(".rejouer-back");
@@ -33,12 +47,10 @@ const video = document.querySelector('.back-video,source') as HTMLVideoElement |
 const settingsBtn = document.getElementById('settingsBtn') as HTMLButtonElement | null;
 const leaderboardTable = document.querySelector('.leaderboard-section table tbody');
 const leaderboardBtn = document.querySelector('.leaderboard.game-btn');
-
 const pseudoInput = document.querySelector<HTMLInputElement>(".pseudo");
 const pseudoDisplay = document.querySelector(".pseudo-displayer");
 
 initializeEventListeners();
-
 
 video?.pause();
 
@@ -46,7 +58,7 @@ creditsform?.addEventListener('submit', (event) => {
     event.preventDefault();
     menuSelection("credits");
     const content = creditsSection.querySelector(".credits-section table tbody");
-    if(content) content.innerHTML = render();
+    if (content) content.innerHTML = render();
 });
 
 backBtn.forEach((btn) => {
@@ -59,50 +71,169 @@ backBtn.forEach((btn) => {
 soloButton?.addEventListener('click', (event) => {
     event.preventDefault();
     setCoopMode(false);
+    setCurrentRoomId(null);
     startNewGame();
     menuSelection("game");
-    if(pseudoInput?.value && pseudoInput.value.length > 0) {
+    if (pseudoInput?.value && pseudoInput.value.length > 0) {
         player.setPseudo(pseudoInput?.value);
-        
     }
-    if(pseudoDisplay){
-        const pseudo = player.pseudo;
-        if(pseudo.length > 12) {
-            pseudoDisplay.innerHTML = `Joueur : ${pseudo.substring(0, 12)}...`;
-        } else {
-            pseudoDisplay.innerHTML = `Joueur : ${pseudo}`;
-        }
-    }
+    updatePseudoDisplay();
 });
 
 coopButton?.addEventListener('click', (event) => {
     event.preventDefault();
+    menuSelection("coop-menu");
+});
+
+coopHostBtn?.addEventListener('click', (event) => {
+    event.preventDefault();
+    const pseudo = pseudoInput?.value || "Guest";
+    socket.emit("createRoom", { pseudo }, (result: { success: boolean; roomId?: string }) => {
+        if (result.success && result.roomId) {
+            setCurrentRoomId(result.roomId);
+            if (roomIdDisplay) roomIdDisplay.textContent = result.roomId;
+            menuSelection("waiting-room");
+        }
+    });
+});
+
+coopJoinBtn?.addEventListener('click', (event) => {
+    event.preventDefault();
+    refreshRoomsList();
+    menuSelection("room-list");
+});
+
+coopBackBtn?.addEventListener('click', (event) => {
+    event.preventDefault();
+    menuSelection("main");
+});
+
+cancelRoomBtn?.addEventListener('click', (event) => {
+    event.preventDefault();
+    socket.emit("leaveRoom");
+    setCurrentRoomId(null);
+    menuSelection("coop-menu");
+});
+
+roomsBackBtn?.addEventListener('click', (event) => {
+    event.preventDefault();
+    menuSelection("coop-menu");
+});
+
+refreshRoomsBtn?.addEventListener('click', (event) => {
+    event.preventDefault();
+    refreshRoomsList();
+});
+
+function refreshRoomsList() {
+    socket.emit("getRooms", (roomList: Array<{ id: string; hostPseudo: string }>) => {
+        if (!roomsList) return;
+
+        const existingRooms = roomsList.querySelectorAll(".room-item");
+        existingRooms.forEach(el => el.remove());
+
+        if (roomList.length === 0) {
+            noRoomsMsg?.classList.remove("hidden");
+        } else {
+            noRoomsMsg?.classList.add("hidden");
+            roomList.forEach(room => {
+                const roomEl = document.createElement("div");
+                roomEl.className = "room-item";
+                roomEl.innerHTML = `
+                    <span class="room-host-name">${escapeHtml(room.hostPseudo)}</span>
+                    <button class="join-room-btn" data-room-id="${room.id}">Rejoindre</button>
+                `;
+                roomsList.appendChild(roomEl);
+
+                const joinBtn = roomEl.querySelector(".join-room-btn");
+                joinBtn?.addEventListener('click', () => joinRoom(room.id));
+            });
+        }
+    });
+}
+
+function escapeHtml(text: string): string {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function joinRoom(roomId: string) {
+    const pseudo = pseudoInput?.value || "Invité";
+    socket.emit("joinRoom", { roomId, pseudo }, (result: { success: boolean; error?: string }) => {
+        if (!result.success) {
+            alert(result.error || "Impossible de rejoindre la room");
+            refreshRoomsList();
+        }
+    });
+}
+
+function updatePseudoDisplay() {
+    if (pseudoDisplay) {
+        const pseudo = player.pseudo;
+        pseudoDisplay.innerHTML = pseudo.length > 12
+            ? `Joueur : ${pseudo.substring(0, 12)}...`
+            : `Joueur : ${pseudo}`;
+    }
+}
+
+socket.on("roomReady", (data: { roomId: string }) => {
     setCoopMode(true);
-    startNewGame();
-    menuSelection("game");
-    if(pseudoInput?.value && pseudoInput.value.length > 0) {
+    setCurrentRoomId(data.roomId);
+
+    if (pseudoInput?.value && pseudoInput.value.length > 0) {
         player.setPseudo(pseudoInput?.value);
     }
-    if(pseudoDisplay){
-        const pseudo = player.pseudo;
-        if(pseudo.length > 12) {
-            pseudoDisplay.innerHTML = `Joueur : ${pseudo.substring(0, 12)}...`;
-        } else {
-            pseudoDisplay.innerHTML = `Joueur : ${pseudo}`;
-        }
-    }
+    updatePseudoDisplay();
+
+    allyHearts.forEach((heart) => {
+        heart.setAttribute("src", "/assets/HeartIcon.png");
+        heart.setAttribute("alt", "coeur allié plein");
+    });
+    allyHealthContainer?.classList.remove("hidden");
+    startNewGame();
+    menuSelection("game");
 });
+
+socket.on("gameOverRoom", (data: { reason: string }) => {
+    console.log("Game over for room:", data.reason);
+    setCurrentRoomId(null);
+    allyHealthContainer?.classList.add("hidden");
+    menuSelection("over");
+});
+
+socket.on("allyHealthUpdate", (data: { health: number }) => {
+    updateAllyHealth(data.health);
+});
+
+function updateAllyHealth(health: number) {
+    allyHearts.forEach((heart, i) => {
+        if (i < health) {
+            heart.setAttribute("src", "/assets/HeartIcon.png");
+            heart.setAttribute("alt", "coeur allié plein");
+        } else {
+            heart.setAttribute("src", "/assets/HeartIconEmpty.png");
+            heart.setAttribute("alt", "coeur allié vide");
+        }
+    });
+}
 
 overBackButton?.addEventListener('click', (event) => {
     event.preventDefault();
     resetCurrentGame();
+    allyHealthContainer?.classList.add("hidden");
     menuSelection("main");
     video?.setAttribute("src", "assets/DoomguyIsabelle.mp4");
 });
 
 quitButton?.addEventListener('click', (event) => {
     event.preventDefault();
+    if (currentRoomId) {
+        socket.emit("leaveRoom");
+        setCurrentRoomId(null);
+    }
     resetCurrentGame();
+    allyHealthContainer?.classList.add("hidden");
     menuSelection("main");
     video?.setAttribute("src", "assets/DoomguyIsabelle.mp4");
 });
@@ -122,8 +253,7 @@ starterBtn?.addEventListener('click', (event) => {
     video?.play();
 });
 
-
-export function menuSelection(menu:string) {
+export function menuSelection(menu: string) {
     starterSection?.classList.add("hidden");
     mainMenuSection?.classList.add("hidden");
     overSection.classList.add("hidden");
@@ -131,7 +261,11 @@ export function menuSelection(menu:string) {
     creditsSection.classList.add("hidden");
     leaderBoardSection.classList.add("hidden");
     gameSection.classList.add('hidden');
-    switch(menu) {
+    coopMenuSection.classList.add("hidden");
+    waitingRoomSection.classList.add("hidden");
+    roomListSection.classList.add("hidden");
+
+    switch (menu) {
         case "main":
             mainMenuSection?.classList.remove("hidden");
             settingsBtn?.classList.remove("hidden");
@@ -157,11 +291,22 @@ export function menuSelection(menu:string) {
             settingsBtn?.classList.remove("hidden");
             video?.setAttribute("src", "assets/DoomAmbience.mp4");
             startGameTimer();
-            socket.emit("startPlaying", { isCoop: isCoopMode });
+            socket.emit("startPlaying", { isCoop: isCoopMode, roomId: currentRoomId });
+            break;
+        case "coop-menu":
+            coopMenuSection.classList.remove("hidden");
+            settingsBtn?.classList.remove("hidden");
+            break;
+        case "waiting-room":
+            waitingRoomSection.classList.remove("hidden");
+            settingsBtn?.classList.remove("hidden");
+            break;
+        case "room-list":
+            roomListSection.classList.remove("hidden");
+            settingsBtn?.classList.remove("hidden");
             break;
         default:
             console.error("Mauvais appel de menuSelection");
             break;
     }
 }
-
