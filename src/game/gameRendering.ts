@@ -28,7 +28,7 @@ let ennemies: Ennemi[] = [];
 // Second player management
 export let secondPlayer: SecondPlayer | null = null;
 const secondPlayerImage = new Image();
-secondPlayerImage.src = '../../assets/character/isabelle/RIGHT/mtr1.png';
+secondPlayerImage.src = '../../assets/character/isabelle/TOP/mtt1.png';
 
 image.src = '../../assets/character/isabelle/RIGHT/mtr1.png';
 ennemiImage.src = '../../assets/character/ennemi/mob1/mob1.png';
