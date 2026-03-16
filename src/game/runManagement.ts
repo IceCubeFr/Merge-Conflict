@@ -12,7 +12,6 @@ const overSummaryScore = document.querySelector(".over-summary-score");
 
 let gameTimer: ReturnType<typeof setInterval> | undefined;
 let gameStartTimeMs = 0;
-let enemiesKilled = 0;
 let lastRunStats: GameRunStats | undefined;
 
 export function getLastRunStats() {
@@ -23,7 +22,7 @@ export function resetCurrentGame() {
     stopGameTimer();
     resetPlayerPosition();
     resetRenderedGameState();
-    enemiesKilled = 0;
+    player.killedEnnemies = 0;
     updateInGameStats(0);
     socket.emit("stopPlaying");
 }
@@ -32,7 +31,7 @@ export function startNewGame() {
     stopGameTimer();
     resetPlayerPosition();
     resetRenderedGameState();
-    enemiesKilled = 0;
+    player.killedEnnemies = 0;
     updateInGameStats(0);
     socket.emit("stopPlaying");
 }
@@ -55,12 +54,12 @@ export function stopGameTimer() {
 }
 
 function updateInGameStats(elapsedSeconds: number) {
-    const score = computeScore(elapsedSeconds, enemiesKilled);
+    const score = computeScore(elapsedSeconds, player.killedEnnemies);
     if (gameTimeLabel) {
         gameTimeLabel.textContent = `Temps : ${formatDuration(elapsedSeconds)}`;
     }
     if (gameKillsLabel) {
-        gameKillsLabel.textContent = `Ennemis tués : ${enemiesKilled}`;
+        gameKillsLabel.textContent = `Ennemis tués : ${player.killedEnnemies}`;
     }
     if (gameScoreLabel) {
         gameScoreLabel.textContent = `Score : ${score}`;
@@ -81,10 +80,10 @@ function computeScore(survivalSeconds: number, killedEnemies: number) {
 
 export function finalizeCurrentRun(saveScore: boolean) {
     const survivalSeconds = Math.max(0, Math.floor((Date.now() - gameStartTimeMs) / 1000));
-    const score = computeScore(survivalSeconds, enemiesKilled);
+    const score = computeScore(survivalSeconds, player.killedEnnemies);
     const pseudo = player.pseudo?.trim().length ? player.pseudo : "Guest";
     const date = new Date().toISOString();
-
+    const enemiesKilled = player.killedEnnemies;
     lastRunStats = {
         pseudo,
         survivalSeconds,

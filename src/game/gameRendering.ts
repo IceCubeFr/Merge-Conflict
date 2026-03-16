@@ -17,7 +17,7 @@ const hearts = document.querySelectorAll(".game-stat-heart");
 export const player:Player = new Player(0, 0);
 export const image = new Image();
 const ennemiImage = new Image();
-let ennemies: Pick<Ennemi, "posX" | "posY">[] = [];
+let ennemies: Ennemi[] = [];
 
 image.src = '../../assets/character/isabelle/RIGHT/mtr1.png';
 ennemiImage.src = '../../assets/character/ennemi/mob1/mob1.png';
@@ -26,14 +26,16 @@ player.models[0].addEventListener('load', () => {
 	requestAnimationFrame(render);
 }); 
 
-socket.on("ennemiEvent", (updatedEnnemies: Pick<Ennemi, "posX" | "posY">[]) => {
+socket.on("ennemiEvent", (updatedEnnemies: Ennemi[]) => {
 	ennemies = updatedEnnemies;
 });
+
+socket.on
 
 export function resetRenderedGameState() {
 	ennemies = [];
 	player.health = 3;
-	player.score = 0;
+	player.killedEnnemies = 0;
 }
 
 bullet.addEventListener('load', () => {
@@ -61,6 +63,21 @@ function render() {
 	requestAnimationFrame(render);
 }
 
+function bulletsAreColliding(posX:number, posY:number) {
+	for (let i = activeBullets.length - 1; i >= 0; i--) {
+        const balle = activeBullets[i];
+        const diffX = Math.abs(balle.bx - posX);
+        const diffY = Math.abs(balle.by - posY);
+		if(diffX < ENNEMI_RENDER_WIDTH && diffY < ENNEMI_RENDER_HEIGHT) {
+            activeBullets.splice(i, 1);
+            return true;
+        }
+    }
+    return false;
+		
+};
+
+
 function drawHearts() {
 	for(let i = 0; i < hearts.length; i++) {
 		if(i < player.health) {
@@ -77,15 +94,17 @@ function drawEnnemies() {
 	const maxRenderX = Math.max(canvas.width - ENNEMI_RENDER_WIDTH, 0);
 	const maxRenderY = Math.max(canvas.height - ENNEMI_RENDER_HEIGHT, 0);
 
-	for (const ennemi of ennemies) {
-		const renderX = Math.min(
-			(ennemi.posX / SERVER_ARENA_WIDTH) * maxRenderX,
-			maxRenderX,
-		);
-		const renderY = Math.min(
-			(ennemi.posY / SERVER_ARENA_HEIGHT) * maxRenderY,
-			maxRenderY,
-		);
+	for (let i = ennemies.length - 1; i >= 0; i--) {
+        const ennemi = ennemies[i];
+        const renderX = Math.min((ennemi.posX / SERVER_ARENA_WIDTH) * maxRenderX, maxRenderX);
+        const renderY = Math.min((ennemi.posY / SERVER_ARENA_HEIGHT) * maxRenderY, maxRenderY);
+
+        if (bulletsAreColliding(renderX, renderY)) {
+			socket.emit("enemyHurt", i);
+			if(ennemi.health <= 0) {
+				player.ennemyKilled();
+			}
+        }
 
 		if(areColliding(renderX, renderY)) {
 			player.takeHealth();
