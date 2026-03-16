@@ -1,7 +1,7 @@
 import { render } from "./credits";
 import { initializeEventListeners } from "./Parameter";
 import { renderLeaderboard } from "./leaderboard";
-import "./Parameter";
+
 
 const creditsform = document.querySelector(".credits-form");
 const backBtn = document.querySelectorAll(".back-btn");
