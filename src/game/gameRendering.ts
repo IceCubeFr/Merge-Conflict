@@ -1,6 +1,12 @@
 import { Ennemi, Player } from "../../common/types.ts";
 import { canvas, context, x, y } from "./playerMovement.ts";
-import { bullet, activeBullets, updateBullets } from "./playerShoot.ts";
+import {
+	activeBullets,
+	BULLET_RENDER_HEIGHT,
+	BULLET_RENDER_WIDTH,
+	bullet,
+	updateBullets,
+} from "./playerShoot.ts";
 import { socket } from "../socket";
 import { menuSelection } from "../main.ts";
 
@@ -58,7 +64,7 @@ function render() {
 	context.drawImage(player.models[0], player.posX, player.posY, PLAYER_RENDER_WIDTH, PLAYER_RENDER_HEIGHT);
 	updateBullets();
 	activeBullets.forEach(balle => {
-        context.drawImage(bullet, balle.bx, balle.by, PLAYER_RENDER_WIDTH, PLAYER_RENDER_HEIGHT);
+		context.drawImage(bullet, balle.bx, balle.by, BULLET_RENDER_WIDTH, BULLET_RENDER_HEIGHT);
     });
 	requestAnimationFrame(render);
 }
@@ -66,9 +72,16 @@ function render() {
 function bulletsAreColliding(posX:number, posY:number) {
 	for (let i = activeBullets.length - 1; i >= 0; i--) {
         const balle = activeBullets[i];
-        const diffX = Math.abs(balle.bx - posX);
-        const diffY = Math.abs(balle.by - posY);
-		if(diffX < ENNEMI_RENDER_WIDTH && diffY < ENNEMI_RENDER_HEIGHT) {
+        const bulletCenterX = balle.bx + BULLET_RENDER_WIDTH / 2;
+        const bulletCenterY = balle.by + BULLET_RENDER_HEIGHT / 2;
+        const ennemiCenterX = posX + ENNEMI_RENDER_WIDTH / 2;
+        const ennemiCenterY = posY + ENNEMI_RENDER_HEIGHT / 2;
+        const diffX = Math.abs(bulletCenterX - ennemiCenterX);
+        const diffY = Math.abs(bulletCenterY - ennemiCenterY);
+		if(
+			diffX < (BULLET_RENDER_WIDTH + ENNEMI_RENDER_WIDTH) / 2
+			&& diffY < (BULLET_RENDER_HEIGHT + ENNEMI_RENDER_HEIGHT) / 2
+		) {
             activeBullets.splice(i, 1);
             return true;
         }

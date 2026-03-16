@@ -6,13 +6,20 @@ import { player, PLAYER_RENDER_HEIGHT, PLAYER_RENDER_WIDTH } from "./gameRenderi
 export let bullet = new Image();
 bullet.src = "../../assets/bullet.png";
 
+export const BULLET_RENDER_WIDTH = 12;
+export const BULLET_RENDER_HEIGHT = 12;
+const BULLET_VERTICAL_OFFSET = 6;
+
 export let xb: number = 0,
  yb: number = 0;
 
 export const activeBullets: { bx: number, by: number }[] = [];
 
 function bulletSpawn() {
-    activeBullets.push({ bx: player.posX + (PLAYER_RENDER_WIDTH / 2), by: player.posY + (PLAYER_RENDER_HEIGHT / 2) });
+    activeBullets.push({
+        bx: player.posX + PLAYER_RENDER_WIDTH - BULLET_RENDER_WIDTH / 2,
+        by: player.posY + PLAYER_RENDER_HEIGHT / 2 - BULLET_RENDER_HEIGHT / 2 + BULLET_VERTICAL_OFFSET,
+    });
 }
 
 export function updateBullets() {
