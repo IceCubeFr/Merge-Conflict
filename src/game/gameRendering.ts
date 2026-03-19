@@ -1,4 +1,4 @@
-import { Ennemi, Player } from "../../common/types.ts";
+import { Bonus, Ennemi, Player } from "../../common/types.ts";
 import { canvas, context, x, y } from "./playerMovement.ts";
 import {
 	activeBullets,
@@ -17,16 +17,23 @@ const ENNEMI_RENDER_WIDTH = 64;
 const ENNEMI_RENDER_HEIGHT = 64;
 const SERVER_ARENA_WIDTH = 1980;
 const SERVER_ARENA_HEIGHT = 720;
+const BONUS_ITEM_RENDER_WIDTH = 32;
+const BONUS_ITEM_RENDER_HEIGHT = 32;
+const BONUS_ITEM_CHANCES = 0.15;
+
 
 const hearts = document.querySelectorAll(".game-stat-heart");
 
 export const player:Player = new Player(0, 0);
 export const image = new Image();
 const ennemiImage = new Image();
+const bonusImage = new Image();
 let ennemies: Ennemi[] = [];
+let activeBonuses: Bonus[] = [];
 
 image.src = '../../assets/character/isabelle/RIGHT/mtr1.png';
 ennemiImage.src = '../../assets/character/ennemi/mob1/mob1.png';
+bonusImage.src = '../../assets/power_up.png';
 player.models.push(image);
 player.models[0].addEventListener('load', () => {
 	requestAnimationFrame(render);
@@ -36,12 +43,13 @@ socket.on("ennemiEvent", (updatedEnnemies: Ennemi[]) => {
 	ennemies = updatedEnnemies;
 });
 
-socket.on
 
 export function resetRenderedGameState() {
 	ennemies = [];
 	player.health = 3;
 	player.killedEnnemies = 0;
+	player.projectileDamage = 1;
+	activeBonuses = [];
 }
 
 bullet.addEventListener('load', () => {
@@ -60,6 +68,7 @@ function render() {
 	player.posX = x;
 	player.posY = y;
 	drawEnnemies();
+	drawBonuses();
 	drawHearts();
 	context.drawImage(player.models[0], player.posX, player.posY, PLAYER_RENDER_WIDTH, PLAYER_RENDER_HEIGHT);
 	updateBullets();
@@ -90,6 +99,32 @@ function bulletsAreColliding(posX:number, posY:number) {
 		
 };
 
+function bonus_is_colliding(posX:number, posY:number) {
+	const diffX = Math.abs(x - posX);
+	const diffY = Math.abs(y - posY);
+	return diffX < (PLAYER_RENDER_WIDTH / 2 + BONUS_ITEM_RENDER_WIDTH / 2) && diffY < (PLAYER_RENDER_HEIGHT / 2 + BONUS_ITEM_RENDER_HEIGHT / 2);
+}
+
+
+function drawBonuses() {
+    for (let i = activeBonuses.length - 1; i >= 0; i--) {
+        const bonus = activeBonuses[i];
+        
+        bonus.posY += 0.25; 
+
+        context.drawImage(bonusImage, bonus.posX, bonus.posY, BONUS_ITEM_RENDER_WIDTH, BONUS_ITEM_RENDER_HEIGHT);
+
+        if (bonus_is_colliding(bonus.posX, bonus.posY)) {
+            player.projectileDamage += 1;
+            console.log("Bonus ramassé ! Dégâts actuels :", player.projectileDamage);
+            activeBonuses.splice(i, 1);
+        } 
+        else if (bonus.posY > canvas.height) {
+            activeBonuses.splice(i, 1);
+        }
+    }
+}
+
 
 function drawHearts() {
 	for(let i = 0; i < hearts.length; i++) {
@@ -113,16 +148,22 @@ function drawEnnemies() {
         const renderY = Math.min((ennemi.posY / SERVER_ARENA_HEIGHT) * maxRenderY, maxRenderY);
 
         if (bulletsAreColliding(renderX, renderY)) {
-			socket.emit("enemyHurt", i);
+			socket.emit("enemyHurt", i, player.projectileDamage);
+			ennemi.health -= player.projectileDamage;
 			if(ennemi.health <= 0) {
 				player.ennemyKilled();
+				if(Math.random() <= BONUS_ITEM_CHANCES) {
+					console.log(`it worked !`);
+					activeBonuses.push(new Bonus(renderX, renderY, "attack"));
 			}
+		}
         }
 
 		if(areColliding(renderX, renderY)) {
 			player.takeHealth();
 			if(!player.verifyHealth()) {
 				menuSelection("over");
+				resetRenderedGameState();
 			}
 		}
 

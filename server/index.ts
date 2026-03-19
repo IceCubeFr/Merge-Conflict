@@ -39,8 +39,8 @@ io.on('connection', socket => {
 	socket.on("enemyKilled", (index: number) => {
         removeEnnemi(index);
     });
-	socket.on("enemyHurt", (index: number) => {
-        hurtEnnemi(index);
+	socket.on("enemyHurt", (index: number, damage: number) => {
+        hurtEnnemi(index,damage);
     })
 	socket.on("submitScore", async (entry: LeaderboardEntry, ack?: (success: boolean) => void) => {
 		if (!entry?.pseudo || !Number.isFinite(entry?.score) || !entry?.date) {

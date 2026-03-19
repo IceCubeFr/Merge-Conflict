@@ -28,13 +28,13 @@ export function removeEnnemi(index: number) {
     }
 }
 
-export function hurtEnnemi(index: number) {
+export function hurtEnnemi(index: number, damage: number) {
     if (index >= 0 && index < ennemies.length) {
         if(ennemies[index].health <= 0) {
             removeEnnemi(index);
             return;
         }
-        ennemies[index].hurt();
+        ennemies[index].hurt(damage);
         return;
     }
 }
