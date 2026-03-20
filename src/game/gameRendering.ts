@@ -21,7 +21,7 @@ const SERVER_ARENA_HEIGHT = 720;
 
 const hearts = document.querySelectorAll(".game-stat-heart:not(.ally-heart)");
 
-const hitSound = new Audio('../../assets/sounds/bullet_hit.mp3');
+const hitSound = new Audio('../../assets/sounds/bullet_hit.wav');
  
 export const player: Player = new Player(0, 0);
 export const image = new Image();
