@@ -44,7 +44,7 @@ const soloButton = document.querySelector(".game-btn.solo");
 const coopButton = document.querySelector(".game-btn.coop");
 const overBackButton = document.querySelector(".rejouer-back");
 const video = document.querySelector('.back-video,source') as HTMLVideoElement | null;
-const settingsBtn = document.getElementById('settingsBtn') as HTMLButtonElement | null;
+const settingsBtn = document.querySelectorAll('.settingsBtn');
 const leaderboardTable = document.querySelector('.leaderboard-section table tbody');
 const leaderboardBtn = document.querySelector('.leaderboard.game-btn');
 const pseudoInput = document.querySelector<HTMLInputElement>(".pseudo");
@@ -252,7 +252,6 @@ leaderboardBtn?.addEventListener('click', (event) => {
 
 starterBtn?.addEventListener('click', (event) => {
     event.preventDefault();
-    settingsBtn?.classList.remove("hidden");
     menuSelection("main");
     video?.play();
 });
@@ -261,7 +260,7 @@ export function menuSelection(menu: string) {
     starterSection?.classList.add("hidden");
     mainMenuSection?.classList.add("hidden");
     overSection.classList.add("hidden");
-    settingsBtn?.classList.add("hidden");
+    settingsBtn[0]?.classList.add("hidden");
     creditsSection.classList.add("hidden");
     leaderBoardSection.classList.add("hidden");
     gameSection.classList.add('hidden');
@@ -272,42 +271,39 @@ export function menuSelection(menu: string) {
     switch (menu) {
         case "main":
             mainMenuSection?.classList.remove("hidden");
-            settingsBtn?.classList.remove("hidden");
+            settingsBtn[0]?.classList.remove("hidden");
             break;
         case "credits":
             creditsSection.classList.remove("hidden");
-            settingsBtn?.classList.remove("hidden");
             break;
         case "over":
             finalizeCurrentRun(true);
             stopGameTimer();
             socket.emit("stopPlaying");
             overSection.classList.remove('hidden');
-            settingsBtn?.classList.remove("hidden");
             video?.setAttribute("src", "assets/DoomEnd.mp4");
             break;
         case "leaderboard":
             leaderBoardSection.classList.remove("hidden");
-            settingsBtn?.classList.remove("hidden");
             break;
         case "game":
             gameSection.classList.remove("hidden");
-            settingsBtn?.classList.remove("hidden");
+            settingsBtn[1]?.classList.remove("hidden");
             video?.setAttribute("src", "assets/DoomAmbience.mp4");
             startGameTimer();
             socket.emit("startPlaying", { isCoop: isCoopMode, roomId: currentRoomId });
             break;
         case "coop-menu":
             coopMenuSection.classList.remove("hidden");
-            settingsBtn?.classList.remove("hidden");
+            settingsBtn[0]?.classList.remove("hidden");
             break;
         case "waiting-room":
             waitingRoomSection.classList.remove("hidden");
-            settingsBtn?.classList.remove("hidden");
+            settingsBtn[0]?.classList.remove("hidden");
             break;
         case "room-list":
             roomListSection.classList.remove("hidden");
-            settingsBtn?.classList.remove("hidden");
+            settingsBtn[0]?.classList.remove("hidden");
             break;
         default:
             console.error("Mauvais appel de menuSelection");
