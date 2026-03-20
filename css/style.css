@@ -334,6 +334,10 @@ table tr, table th {
   text-align: left;
 }
 
+.credit-content a {
+  color: darkgoldenrod;
+}
+
 .back-btn {
   position: fixed;
   bottom: 35px;
