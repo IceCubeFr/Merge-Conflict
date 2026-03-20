@@ -21,6 +21,8 @@ const SERVER_ARENA_HEIGHT = 720;
 
 const hearts = document.querySelectorAll(".game-stat-heart:not(.ally-heart)");
 
+const hitSound = new Audio('../../assets/sounds/bullet_hit.mp3');
+ 
 export const player: Player = new Player(0, 0);
 export const image = new Image();
 const ennemiImages = [new Image(), new Image()];
@@ -183,6 +185,8 @@ function drawEnnemies() {
 
 		if (bulletsAreColliding(renderX, renderY)) {
 			socket.emit("enemyHurt", i);
+			hitSound.currentTime = 0;
+			hitSound.play();
 			if (ennemi.health <= 0) {
 				socket.emit("enemyKilled");
 			}
