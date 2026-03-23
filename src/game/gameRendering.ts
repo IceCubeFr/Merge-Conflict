@@ -43,6 +43,21 @@ let invincibilityTimeout: NodeJS.Timeout | null = null;
 
 export let secondPlayer: SecondPlayer | null = null;
 const secondPlayerImage = new Image();
+ennemiImage.src = '../../assets/character/ennemi/mob1/mob1.png';
+
+function refreshPlayerModels() {
+	const playerSkinPath = player.isHost
+		? '../../assets/character/isabelle/RIGHT/mtr1.png'
+		: '../../assets/character/doomGuy/DoomGuy.png';
+	const secondPlayerSkinPath = player.isHost
+		? '/assets/character/doomGuy/DoomGuy.png'
+		: '/assets/character/isabelle/RIGHT/mtr1.png';
+
+	image.src = playerSkinPath;
+	secondPlayerImage.src = secondPlayerSkinPath;
+}
+
+refreshPlayerModels();
 secondPlayerImage.src = '/assets/character/isabelle/UP/mtt1.png';
 bonusImage.src = '../../assets/power_up.png';
 
@@ -92,6 +107,7 @@ export function resetRenderedGameState() {
 	player.killedEnnemies = new Map();
 	secondPlayer = null;
 	lastEmittedHealth = 3;
+	refreshPlayerModels();
 	player.projectileDamage = 1;
 	player.shootSpeed = 10;
 	player.projectileSize = 5;
@@ -125,8 +141,9 @@ function render() {
 	drawEnnemies();
 	drawBonuses();
 	drawHearts();
-	drawSecondPlayer();
 	context.drawImage(player.models[0], player.posX, player.posY, PLAYER_RENDER_WIDTH, PLAYER_RENDER_HEIGHT);
+	drawPlayerLabel(player.posX, player.posY, "VOUS");
+	drawSecondPlayer();
 	updateBullets();
 
 	activeBullets.forEach(balle => {
@@ -142,6 +159,22 @@ function render() {
 	requestAnimationFrame(render);
 }
 
+function drawPlayerLabel(renderX: number, renderY: number, label: string) {
+	context.save();
+	context.font = "bold 14px Arial";
+	context.textAlign = "center";
+	context.textBaseline = "bottom";
+	context.fillStyle = "#f6f6f6";
+	context.strokeStyle = "#111111";
+	context.lineWidth = 3;
+
+	const labelX = renderX + PLAYER_RENDER_WIDTH / 2;
+	const labelY = renderY - 8;
+	context.strokeText(label, labelX, labelY);
+	context.fillText(label, labelX, labelY);
+	context.restore();
+}
+
 function drawSecondPlayer() {
 	if (!secondPlayer || !secondPlayer.model || !secondPlayer.model.complete) return;
 
@@ -153,6 +186,7 @@ function drawSecondPlayer() {
 	context.globalAlpha = 0.8;
 	context.drawImage(secondPlayer.model, renderX, renderY, PLAYER_RENDER_WIDTH, PLAYER_RENDER_HEIGHT);
 	context.globalAlpha = 1.0;
+	drawPlayerLabel(renderX, renderY, "J2");
 }
 
 function bulletsAreColliding(posX: number, posY: number) {

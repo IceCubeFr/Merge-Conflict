@@ -41,6 +41,7 @@ export class Player {
     projectileSize: number;
     projectileDamage:number;
     models:HTMLImageElement[] = [];
+    isHost: boolean = true;
 
     constructor(posX:number, posY:number) {
         this.posX = posX;
