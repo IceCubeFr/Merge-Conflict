@@ -43,7 +43,6 @@ let invincibilityTimeout: NodeJS.Timeout | null = null;
 
 export let secondPlayer: SecondPlayer | null = null;
 const secondPlayerImage = new Image();
-ennemiImage.src = '../../assets/character/ennemi/mob1/mob1.png';
 
 function refreshPlayerModels() {
 	const playerSkinPath = player.isHost
