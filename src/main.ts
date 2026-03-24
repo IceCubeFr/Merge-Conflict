@@ -80,7 +80,6 @@ backBtn.forEach((btn) => {
 
 soloButton?.addEventListener('click', (event) => {
     event.preventDefault();
-    difficulty = parseInt(difficultySelect.value);
     setCoopMode(false);
     setCurrentRoomId(null);
     startNewGame();
@@ -93,8 +92,19 @@ soloButton?.addEventListener('click', (event) => {
 
 coopButton?.addEventListener('click', (event) => {
     event.preventDefault();
-    difficulty = parseInt(difficultySelect.value);
     menuSelection("coop-menu");
+});
+
+difficultySelect.addEventListener('change', (event) => {
+    event.preventDefault();
+    difficulty = parseInt(difficultySelect.value);
+    const options = difficultySelect.querySelectorAll("option");
+    options[difficulty].setAttribute("selected", "");
+    for(let i = 0; i < options.length; i++) {
+        if(i != difficulty) {
+            options[i].removeAttribute("selected");
+        }
+    }
 });
 
 coopHostBtn?.addEventListener('click', (event) => {
