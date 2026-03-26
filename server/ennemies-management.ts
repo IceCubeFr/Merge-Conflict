@@ -17,6 +17,7 @@ interface GameSession {
 	spawnTimeout: NodeJS.Timeout | undefined;
 	players: Set<string>;
 	isCoop: boolean;
+	difficulty: number;
 }
 
 const sessions: Map<string, GameSession> = new Map();
@@ -25,14 +26,15 @@ function getSession(sessionId: string): GameSession | undefined {
 	return sessions.get(sessionId);
 }
 
-function createSession(sessionId: string, isCoop: boolean): GameSession {
+function createSession(sessionId: string, isCoop: boolean, difficulty: number): GameSession {
 	const session: GameSession = {
 		ennemies: [],
 		playing: false,
 		currentSpawnIntervalMs: initialSpawnIntervalMs,
 		spawnTimeout: undefined,
 		players: new Set(),
-		isCoop
+		isCoop,
+		difficulty,
 	};
 	sessions.set(sessionId, session);
 	return session;
@@ -49,14 +51,37 @@ function deleteSession(sessionId: string) {
 }
 
 function spawnEnnemi(session: GameSession, sessionId: string) {
-	const random: number = Math.round(Math.random() * 100);
-	let health = 25, moveSpeed = 1, url = 0;
-	if(random < 25) {
+	const random: number = Math.random() * 100;
+	const isHardMode = session.difficulty === 2;
+
+	let health = 25;
+	let moveSpeed = 1;
+	let imageId = 0;
+	let movementType: "horizontal" | "diagonal" = "horizontal";
+	let verticalSpeed = 0;
+
+	if (isHardMode && random < 12) {
+		// Ennemi special: plus rare, deplacement en X+Y et vitesse intermediaire.
+		health = 18;
+		moveSpeed = 3;
+		imageId = 1;
+		movementType = "diagonal";
+		verticalSpeed = (Math.random() > 0.5 ? 1 : -1) * 2;
+	} else if (random < 25) {
 		health = 10;
 		moveSpeed = 5;
-		url = 1;
+		imageId = 1;
 	}
-	const newEnnemi = new Ennemi(rightWall + ENNEMI_RENDER_WIDTH, Math.random() * (arenaHeight - ENNEMI_RENDER_HEIGHT), health, moveSpeed, url);
+
+	const newEnnemi = new Ennemi(
+		rightWall + ENNEMI_RENDER_WIDTH,
+		Math.random() * (arenaHeight - ENNEMI_RENDER_HEIGHT),
+		health,
+		moveSpeed,
+		imageId,
+		movementType,
+		verticalSpeed,
+	);
 	session.ennemies.push(newEnnemi);
 	session.players.forEach(socketId => {
 		io.to(socketId).emit("ennemiEvent", session.ennemies);
@@ -149,11 +174,11 @@ function autoMoveAll() {
 }
 setInterval(autoMoveAll, 100);
 
-export function startPlaying(sessionId: string, socketId: string, isCoop: boolean) {
+export function startPlaying(sessionId: string, socketId: string, isCoop: boolean, difficulty: number) {
 	let session = getSession(sessionId);
 
 	if (!session) {
-		session = createSession(sessionId, isCoop);
+		session = createSession(sessionId, isCoop, difficulty);
 	}
 
 	session.players.add(socketId);
@@ -162,6 +187,7 @@ export function startPlaying(sessionId: string, socketId: string, isCoop: boolea
 	const shouldReset = !isCoop || !session.playing;
 
 	if (shouldReset) {
+		session.difficulty = difficulty;
 		resetSpawnTimer(session);
 		session.ennemies.length = 0;
 		session.playing = true;

@@ -18,11 +18,11 @@ describe('Player', () => {
 
     it('should increment killedEnnemies when ennemyKilled is called', () => {
         const player = new Player(0, 0);
-        assert.equal(player.killedEnnemies, 0);
-        player.ennemyKilled();
-        assert.equal(player.killedEnnemies, 1);
-        player.ennemyKilled();
-        assert.equal(player.killedEnnemies, 2);
+        assert.equal(player.killedEnnemies.size, 0);
+        player.ennemyKilled(0);
+        assert.equal(player.killedEnnemies.get(0), 1);
+        player.ennemyKilled(0);
+        assert.equal(player.killedEnnemies.get(0), 2);
     });
 
     it('should decrease health when takeHealth is called and not invincible', () => {
@@ -92,8 +92,6 @@ describe('Ennemi', () => {
         assert.equal(ennemi.posX, 100);
         assert.equal(ennemi.posY, 200);
         assert.equal(ennemi.health, 1);
-        assert.equal(ennemi.projsize, 1);
-        assert.equal(ennemi.shootspeed, 1);
     });
 
     it('should initialize with custom values', () => {
@@ -101,8 +99,6 @@ describe('Ennemi', () => {
         assert.equal(ennemi.posX, 50);
         assert.equal(ennemi.posY, 75);
         assert.equal(ennemi.health, 25);
-        assert.equal(ennemi.projsize, 10);
-        assert.equal(ennemi.shootspeed, 5);
     });
 
     it('move should decrease posX by 3', () => {
@@ -114,11 +110,11 @@ describe('Ennemi', () => {
     });
 
     it('hurt should decrease health by 1', () => {
-        const ennemi = new Ennemi(0, 0, 5);
+        const ennemi = new Ennemi(0, 0, 5, 1, 0);
         assert.equal(ennemi.health, 5);
-        ennemi.hurt();
+        ennemi.hurt(1);
         assert.equal(ennemi.health, 4);
-        ennemi.hurt();
+        ennemi.hurt(1);
         assert.equal(ennemi.health, 3);
     });
 });

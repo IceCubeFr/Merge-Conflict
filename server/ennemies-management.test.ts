@@ -10,7 +10,7 @@ describe('Ennemi spawning logic', () => {
     const arenaHeight = 720;
 
     it('should spawn ennemi at right wall', () => {
-        const ennemi = new Ennemi(rightWall, Math.random() * arenaHeight, 25);
+        const ennemi = new Ennemi(rightWall, Math.random() * arenaHeight, 25, 1, 0);
         assert.equal(ennemi.posX, rightWall);
         assert.ok(ennemi.posY >= 0 && ennemi.posY <= arenaHeight);
         assert.equal(ennemi.health, 25);
@@ -20,9 +20,9 @@ describe('Ennemi spawning logic', () => {
 describe('Ennemi array management', () => {
     it('should remove ennemi at valid index', () => {
         const ennemies: Ennemi[] = [
-            new Ennemi(100, 100),
-            new Ennemi(200, 200),
-            new Ennemi(300, 300),
+            new Ennemi(100, 100, 1, 1, 0),
+            new Ennemi(200, 200, 1, 1, 0),
+            new Ennemi(300, 300, 1, 1, 0),
         ];
         const index = 1;
         if (index >= 0 && index < ennemies.length) {
@@ -34,7 +34,7 @@ describe('Ennemi array management', () => {
     });
 
     it('should not remove ennemi at invalid index', () => {
-        const ennemies: Ennemi[] = [new Ennemi(100, 100)];
+        const ennemies: Ennemi[] = [new Ennemi(100, 100, 1, 1, 0)];
         const index = 5;
         if (index >= 0 && index < ennemies.length) {
             ennemies.splice(index, 1);
@@ -43,10 +43,10 @@ describe('Ennemi array management', () => {
     });
 
     it('should hurt ennemi and decrease health', () => {
-        const ennemies: Ennemi[] = [new Ennemi(100, 100, 5)];
+        const ennemies: Ennemi[] = [new Ennemi(100, 100, 5, 1, 0)];
         const index = 0;
         if (index >= 0 && index < ennemies.length) {
-            ennemies[index].hurt();
+            ennemies[index].hurt(1);
         }
         assert.equal(ennemies[0].health, 4);
     });
@@ -57,8 +57,8 @@ describe('Auto move logic', () => {
 
     it('should move ennemies to the left', () => {
         const ennemies: Ennemi[] = [
-            new Ennemi(500, 100),
-            new Ennemi(300, 200),
+            new Ennemi(500, 100, 1, 1, 0),
+            new Ennemi(300, 200, 1, 1, 0),
         ];
         ennemies.forEach((ennemi) => {
             if (ennemi.posX > leftCleanupLimit) {
@@ -71,9 +71,9 @@ describe('Auto move logic', () => {
 
     it('should remove ennemies past left cleanup limit', () => {
         const ennemies: Ennemi[] = [
-            new Ennemi(-50, 100),
-            new Ennemi(-150, 200), // Past limit
-            new Ennemi(100, 300),
+            new Ennemi(-50, 100, 1, 1, 0),
+            new Ennemi(-150, 200, 1, 1, 0), // Past limit
+            new Ennemi(100, 300, 1, 1, 0),
         ];
         for (let i = ennemies.length - 1; i >= 0; i--) {
             if (ennemies[i].posX <= leftCleanupLimit) {
@@ -124,7 +124,7 @@ describe('Max ennemies limit', () => {
         const maxEnnemies = 50;
         const ennemies: Ennemi[] = Array.from(
             { length: 50 },
-            (_, i) => new Ennemi(i * 10, i * 10)
+            (_, i) => new Ennemi(i * 10, i * 10, 1, 1, 0)
         );
         
         // Should not spawn if at limit
@@ -136,7 +136,7 @@ describe('Max ennemies limit', () => {
         const maxEnnemies = 50;
         const ennemies: Ennemi[] = Array.from(
             { length: 49 },
-            (_, i) => new Ennemi(i * 10, i * 10)
+            (_, i) => new Ennemi(i * 10, i * 10, 1, 1, 0)
         );
         
         const canSpawn = ennemies.length < maxEnnemies;

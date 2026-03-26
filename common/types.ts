@@ -106,17 +106,42 @@ export class Ennemi {
     health:number;
     moveSpeed:number;
     imageId: number;
+    movementType: "horizontal" | "diagonal";
+    verticalSpeed: number;
 
-    constructor(posX:number, posY:number, health:number, moveSpeed:number, imageId: number ) {
+    constructor(
+        posX:number,
+        posY:number,
+        health:number = 1,
+        moveSpeed:number = 1,
+        imageId: number = 0,
+        movementType: "horizontal" | "diagonal" = "horizontal",
+        verticalSpeed: number = 0,
+    ) {
         this.health = health;
         this.moveSpeed = moveSpeed;
         this.posX = posX;
         this.posY = posY;
         this.imageId = imageId;
+        this.movementType = movementType;
+        this.verticalSpeed = verticalSpeed;
     }
 
-    move() {
+    move(arenaMaxY: number = 720, ennemiHeight: number = 64) {
         this.posX -= this.moveSpeed * 3;
+
+        if (this.movementType === "diagonal") {
+            this.posY += this.verticalSpeed * 3 ;
+
+            const maxY = Math.max(0, arenaMaxY - ennemiHeight);
+            if (this.posY <= 0) {
+                this.posY = 0;
+                this.verticalSpeed = Math.abs(this.verticalSpeed);
+            } else if (this.posY >= maxY) {
+                this.posY = maxY;
+                this.verticalSpeed = -Math.abs(this.verticalSpeed);
+            }
+        }
     }
 
     shoot() {

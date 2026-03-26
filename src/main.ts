@@ -314,7 +314,11 @@ export function menuSelection(menu: string) {
             settingsBtn[1]?.classList.remove("hidden");
             video?.setAttribute("src", "assets/DoomAmbience.mp4");
             startGameTimer();
-            socket.emit("startPlaying", { isCoop: isCoopMode, roomId: currentRoomId });
+            socket.emit("startPlaying", {
+                isCoop: isCoopMode,
+                roomId: currentRoomId,
+                difficulty,
+            });
             break;
         case "coop-menu":
             coopMenuSection.classList.remove("hidden");
