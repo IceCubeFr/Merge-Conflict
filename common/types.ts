@@ -13,6 +13,14 @@ export interface BestScore {
     date:Date;
 }
 
+export type InputMode = "keyboard" | "mouse";
+
+export interface GameSettings {
+    volume: number;
+    soundEffects: number;
+    inputMode: InputMode;
+}
+
 export interface LeaderboardEntry {
     pseudo:string;
     score:number;

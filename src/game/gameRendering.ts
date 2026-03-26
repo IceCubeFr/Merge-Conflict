@@ -24,11 +24,11 @@ const SERVER_ARENA_HEIGHT = 720;
 const BONUS_ITEM_RENDER_WIDTH = 32;
 const BONUS_ITEM_RENDER_HEIGHT = 32;
 
-const ennemy_hit_sound = new Audio('../../assets/sounds/bullet_hit.wav');
-const ennemy_death_sound = new Audio('../../assets/sounds/monster_death.wav');
-const player_hurt_sound = new Audio('../../assets/sounds/player_hurt.wav');
+export const ennemy_hit_sound = new Audio('../../assets/sounds/bullet_hit.wav');
+export const ennemy_death_sound = new Audio('../../assets/sounds/monster_death.wav');
+export const player_hurt_sound = new Audio('../../assets/sounds/player_hurt.wav');
 export const bullet_shot_sound = new Audio('../../assets/sounds/bullet_shot.wav');
-const bonus_pickup_sound = new Audio('../../assets/sounds/bonus_pickup.wav');
+export const bonus_pickup_sound = new Audio('../../assets/sounds/bonus_pickup.wav');
  
 export const player: Player = new Player(0, 0);
 const image = new Map<string, HTMLImageElement>();
@@ -57,6 +57,7 @@ image.get("isa-dark")!.src = '/assets/character/isabelle/dark.png';
 image.get('doomguy')!.src = '/assets/character/doomGuy/DoomGuy.png';
 image.get('doomguy-purple')!.src = '/assets/character/doomGuy/purple.png';
 image.get('doomguy-orange')!.src = '/assets/character/doomGuy/orange.png';
+
 ennemiImages[0].src = '../../assets/character/ennemi/mob1/mob1.png';
 ennemiImages[1].src = '../../assets/character/ennemi/mob1/mob12.png';
 player.models.push(image.get(skinSelect.value)!);

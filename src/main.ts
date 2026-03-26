@@ -45,7 +45,7 @@ const allyHearts = document.querySelector(".ally-hearts")!;
 const soloButton = document.querySelector(".game-btn.solo");
 const coopButton = document.querySelector(".game-btn.coop");
 const overBackButton = document.querySelector(".rejouer-back");
-const video = document.querySelector('.back-video,source') as HTMLVideoElement | null;
+const video = document.querySelector('.back-video,source') as HTMLVideoElement;
 const settingsBtn = document.querySelectorAll('.settingsBtn');
 const leaderboardTable = document.querySelector('.leaderboard-section table tbody');
 const leaderboardBtn = document.querySelector('.leaderboard.game-btn');
@@ -56,9 +56,11 @@ const attackBonusDisplay = document.querySelector(".attack_bonus");
 const speedBonusDisplay = document.querySelector(".speed_bonus");
 const invincibilityBonusDisplay = document.querySelector(".invincibility_bonus");
 const difficultySelect = document.querySelector(".difficulty-select") as HTMLSelectElement;
+
 let currentAttackTimeout: NodeJS.Timeout | null = null;
 let currentSpeedTimeout: NodeJS.Timeout | null = null;
 let currentInvincibilityTimeout: NodeJS.Timeout | null = null;
+
 export let difficulty: number = 0;
 
 initializeEventListeners();

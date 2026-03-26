@@ -11,6 +11,8 @@ const gameScoreLabel = document.querySelector(".game-score-label");
 const overSummaryTimeKills = document.querySelector(".over-summary-time-kills");
 const overSummaryScore = document.querySelector(".over-summary-score");
 const healthContainer = document.querySelector(".health-container")!;
+const audio: HTMLAudioElement = document.querySelector('.game-background-music')!;
+
 const scoreAtDeath = [100, 200];
 const DEFAULT_HEALTH = 3;
 
@@ -35,6 +37,7 @@ export function resetCurrentGame() {
     finalScore = 0;
     finalSurvivalSeconds = 0;
     updateInGameStats(0);
+    audio.pause();
     socket.emit("stopPlaying");
 }
 
@@ -42,6 +45,7 @@ export function startNewGame() {
     stopGameTimer();
     resetPlayerPosition();
     resetRenderedGameState();
+    audio.play();
     player.killedEnnemies = new Map();
     switch(difficulty) {
         case 0:

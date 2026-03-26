@@ -65,13 +65,17 @@
         </video>
         <div class="video-overlay"></div>
     </div>
-
+    <div class="background-audio">
+        <audio loop class="game-background-music" src="/assets/sounds/back-game-music.mp3"></audio>
+    </div>
     <div id="settingsPanel" class="settings-panel hidden">
         <h2 class="settings-title">Paramètres</h2>
 
         <div class="settings-group">
             <label for="volumeControl">Volume de la musique :</label>
             <input type="range" id="volumeControl" min="0" max="1" step="0.1" value="0.5">
+            <label for="volumeControl-soundEffects">Volume des effets sonores :</label>
+            <input type="range" class="volumeControl-soundEffects" min="0" max="1" step="0.1" value="0.5">
         </div>
 
         <div class="settings-group">
@@ -152,6 +156,7 @@
                     <li>Vidéo de fond du jeu: <a href="https://www.youtube.com/watch?v=KYYYJlmHFsY">Youtube</a></li>
                     <li>Vidéo du Game Over : <a href="https://www.youtube.com/watch?v=E-yQhjGHxPY">Youtube</a></li>
                     <li>Image de fond du starter : <a href="https://preview.redd.it/doom-slayer-and-isabelle-doom-eternal-and-animal-crossing-v0-tyzxrbd2l6u41.png?width=1080&crop=smart&auto=webp&s=8b9bd1da3473d9746e5b2319b9aff37519dab770">Reddit</a></li>
+                    <li>Musique de fond pendant les combats : <a href="https://www.youtube.com/watch?v=KkSfEQcZHy8&list=PLfP6i5T0-DkIoOYMkO3N5eTKngUvhV56p&index=7">Youtube (libre de droits)</a></li>
                 </ul>
             </article>
             <article class="glassmorphism">
