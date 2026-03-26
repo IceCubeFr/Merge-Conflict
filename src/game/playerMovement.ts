@@ -25,7 +25,7 @@ const FRICTION = 0.85;
 import { getInputMode } from "../Parameter.ts";
 import { PLAYER_RENDER_HEIGHT, PLAYER_RENDER_WIDTH} from "./gameRendering.ts";
 import { socket } from "../socket.ts";
-import { isCoopMode } from "../main.ts";
+import { isCoopMode, isMultiplayerMode, isSpectatorMode, sendMultiPlayerMove } from "../main.ts";
 
 // Server arena dimensions for coordinate conversion
 const SERVER_ARENA_WIDTH = 1980;
@@ -41,10 +41,14 @@ function toServerCoords(localX: number, localY: number) {
 	};
 }
 
-// Emit player position for coop mode
 function emitPlayerPosition() {
-	if (isCoopMode) {
-		const serverCoords = toServerCoords(x, y);
+	if (isSpectatorMode) return;
+
+	const serverCoords = toServerCoords(x, y);
+
+	if (isMultiplayerMode) {
+		sendMultiPlayerMove(serverCoords.posX, serverCoords.posY);
+	} else if (isCoopMode) {
 		socket.emit("playerMove", serverCoords);
 	}
 }
