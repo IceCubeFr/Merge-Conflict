@@ -217,8 +217,7 @@ io.on('connection', socket => {
 			socket.to(sessionId).emit("secondPlayerUpdate", {
 				posX: 0,
 				posY: 0,
-				socketId: socket.id,
-				modelId: data.modelId
+				socketId: socket.id
 			});
 			socket.to(sessionId).emit("requestPositionUpdate");
 		}

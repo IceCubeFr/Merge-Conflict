@@ -44,11 +44,19 @@ bonusImage.src = '../../assets/power_up.png';
 
 image.set("isa-lega", new Image());
 image.set("doomguy", new Image());
+image.set("doomguy-purple", new Image());
+image.set("doomguy-orange", new Image());
 image.set("isa-red", new Image());
+image.set("isa-blue", new Image());
+image.set("isa-dark", new Image());
 
 image.get("isa-lega")!.src = '/assets/character/isabelle/RIGHT/mtr1.png';
-image.get("isa-red")!.src = '/assets/character/isabelle/RIGHT/mtr1.png';
+image.get("isa-red")!.src = '/assets/character/isabelle/rouge.png';
+image.get("isa-blue")!.src = '/assets/character/isabelle/bleue.png';
+image.get("isa-dark")!.src = '/assets/character/isabelle/dark.png';
 image.get('doomguy')!.src = '/assets/character/doomGuy/DoomGuy.png';
+image.get('doomguy-purple')!.src = '/assets/character/doomGuy/purple.png';
+image.get('doomguy-orange')!.src = '/assets/character/doomGuy/orange.png';
 ennemiImages[0].src = '../../assets/character/ennemi/mob1/mob1.png';
 ennemiImages[1].src = '../../assets/character/ennemi/mob1/mob12.png';
 player.models.push(image.get(skinSelect.value)!);
@@ -343,5 +351,3 @@ function resampleCanvas() {
 	canvas.width = canvas.clientWidth;
 	canvas.height = canvas.clientHeight;
 }
-
-skinSelect
