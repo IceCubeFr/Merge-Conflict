@@ -200,8 +200,9 @@ io.on('connection', socket => {
 		rooms.delete(roomId);
 	});
 
-	socket.on("startPlaying", (data: { isCoop: boolean; roomId?: string; modelId: string }) => {
+	socket.on("startPlaying", (data: { isCoop: boolean; roomId?: string; difficulty?: number }) => {
 		const isCoop = data?.isCoop ?? false;
+		const difficulty = Number.isFinite(data?.difficulty) ? Number(data.difficulty) : 0;
 		const sessionId = isCoop && data.roomId ? data.roomId : socket.id;
 
 		playerSessions.set(socket.id, sessionId);
@@ -210,7 +211,7 @@ io.on('connection', socket => {
 		}
 
 		socket.join(sessionId);
-		startPlaying(sessionId, socket.id, isCoop);
+		startPlaying(sessionId, socket.id, isCoop, difficulty);
 
 		if (isCoop) {
 			socket.to(sessionId).emit("secondPlayerUpdate", {

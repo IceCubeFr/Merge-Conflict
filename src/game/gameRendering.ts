@@ -62,7 +62,18 @@ skinSelect.addEventListener('change', (event) => {
 });
 
 socket.on("ennemiEvent", (updatedEnnemies: Ennemi[]) => {
-	ennemies = updatedEnnemies;
+	// Socket payloads are plain objects; rebuild class instances to keep Ennemi methods available.
+	ennemies = updatedEnnemies.map((ennemi) =>
+		new Ennemi(
+			ennemi.posX,
+			ennemi.posY,
+			ennemi.health,
+			ennemi.moveSpeed,
+			ennemi.imageId,
+			ennemi.movementType,
+			ennemi.verticalSpeed,
+		),
+	);
 });
 
 socket.on("secondPlayerUpdate", (data: SecondPlayerData) => {
@@ -319,7 +330,8 @@ function drawEnnemies() {
 			ennemi.kill();
 		}
 
-		context.drawImage(ennemiImages[ennemi.imageId], renderX, renderY, ENNEMI_RENDER_WIDTH, ENNEMI_RENDER_HEIGHT);
+		const ennemiImage = ennemiImages[ennemi.imageId] ?? ennemiImages[0];
+		context.drawImage(ennemiImage, renderX, renderY, ENNEMI_RENDER_WIDTH, ENNEMI_RENDER_HEIGHT);
 	}
 }
 
