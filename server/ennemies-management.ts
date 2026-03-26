@@ -51,12 +51,23 @@ function deleteSession(sessionId: string) {
 function spawnEnnemi(session: GameSession, sessionId: string) {
 	const random: number = Math.round(Math.random() * 100);
 	let health = 25, moveSpeed = 1, url = 0;
+	let shootSpeed, projectileDamage, projectileSize;
+	let newEnnemi:Ennemi;
 	if(random < 25) {
 		health = 10;
 		moveSpeed = 5;
 		url = 1;
+		newEnnemi = new Ennemi(rightWall + ENNEMI_RENDER_WIDTH, Math.random() * (arenaHeight - ENNEMI_RENDER_HEIGHT), health, moveSpeed, url);
+	} else if(random > 25 && random < 50) {
+		health = 15;
+		moveSpeed = 2;
+		shootSpeed = 0.5
+		projectileDamage = 1;
+		projectileSize = 5;
+		url = 2;
+		newEnnemi = new Ennemi(rightWall + ENNEMI_RENDER_WIDTH, Math.random() * (arenaHeight - ENNEMI_RENDER_HEIGHT), health, moveSpeed, url, shootSpeed, projectileSize, projectileDamage);
 	}
-	const newEnnemi = new Ennemi(rightWall + ENNEMI_RENDER_WIDTH, Math.random() * (arenaHeight - ENNEMI_RENDER_HEIGHT), health, moveSpeed, url);
+	newEnnemi = new Ennemi(rightWall + ENNEMI_RENDER_WIDTH, Math.random() * (arenaHeight - ENNEMI_RENDER_HEIGHT), health, moveSpeed, url);
 	session.ennemies.push(newEnnemi);
 	session.players.forEach(socketId => {
 		io.to(socketId).emit("ennemiEvent", session.ennemies);

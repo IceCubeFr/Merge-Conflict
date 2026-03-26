@@ -29,8 +29,6 @@ export interface GameRunStats {
 }
 
 export class Player {
-    // Idée : Ajouter des types de projectile avec effets différents
-    // Exemple : type électrique qui touche plusieurs ennemis comme l'électro-sorcier
     posX:number;
     posY:number;
     pseudo: string;
@@ -104,15 +102,21 @@ export class Ennemi {
     posX:number;
     posY:number;
     health:number;
+    shootSpeed?: number;
+    projectileSize?: number;
+    projectileDamage?:number;
     moveSpeed:number;
     imageId: number;
 
-    constructor(posX:number, posY:number, health:number, moveSpeed:number, imageId: number ) {
+    constructor(posX:number, posY:number, health:number, moveSpeed:number, imageId: number, shootSpeed?:number, projectileSize?:number, projectileDamage?:number) {
         this.health = health;
         this.moveSpeed = moveSpeed;
         this.posX = posX;
         this.posY = posY;
         this.imageId = imageId;
+        this.shootSpeed = shootSpeed;
+        this.projectileDamage = projectileDamage;
+        this.projectileSize = projectileSize;
     }
 
     move() {

@@ -59,6 +59,7 @@ bonusImage.src = '../../assets/power_up.png';
 image.src = '../../assets/character/isabelle/RIGHT/mtr1.png';
 ennemiImages[0].src = '../../assets/character/ennemi/mob1/mob1.png';
 ennemiImages[1].src = '../../assets/character/ennemi/mob1/mob12.png';
+ennemiImages[2].src = '../../assets/character/ennemi/mob1/mob_tir.png'
 player.models.push(image);
 player.models[0].addEventListener('load', () => {
 	requestAnimationFrame(render);
