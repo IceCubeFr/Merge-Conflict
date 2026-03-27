@@ -7,10 +7,12 @@ import {
 	bullet,
 	updateBullets,
 	secondPlayerBullets,
+	enemyBullets,
 	resetBullets,
 } from "./playerShoot.ts";
 import { socket } from "../socket.ts";
-import { menuSelection, isCoopMode, currentRoomId, bonusDisplayUpdate } from "../main.ts";
+import { menuSelection, bonusDisplayUpdate } from "../main.ts";
+import { isCoopMode, currentRoomId } from "../gameState.ts";
 import { updateHealth } from "./runManagement.ts";
 
 const skinSelect: HTMLSelectElement = document.querySelector('.skin-select')!;
@@ -33,7 +35,7 @@ export const bonus_pickup_sound = new Audio('../../assets/sounds/bonus_pickup.wa
 export const player: Player = new Player(0, 0);
 const image = new Map<string, HTMLImageElement>();
 export const bonusImage = new Image();
-const ennemiImages = [new Image(), new Image()];
+const ennemiImages = [new Image(), new Image(), new	Image()];
 let ennemies: Ennemi[] = [];
 let activeBonuses: Bonus[] = [];
 let lastEmittedHealth = 3;
@@ -60,6 +62,7 @@ image.get('doomguy-orange')!.src = '/assets/character/doomGuy/orange.png';
 
 ennemiImages[0].src = '../../assets/character/ennemi/mob1/mob1.png';
 ennemiImages[1].src = '../../assets/character/ennemi/mob1/mob12.png';
+ennemiImages[2].src = '../../assets/character/ennemi/mob1/mob_tir.png'
 player.models.push(image.get(skinSelect.value)!);
 player.models[0].addEventListener('load', () => {
 	requestAnimationFrame(render);
@@ -79,6 +82,7 @@ socket.on("ennemiEvent", (updatedEnnemies: Ennemi[]) => {
 			ennemi.health,
 			ennemi.moveSpeed,
 			ennemi.imageId,
+			1, 1, 1,
 			ennemi.movementType,
 			ennemi.verticalSpeed,
 		),
@@ -109,6 +113,19 @@ socket.on("spawnBonus", (data: {id: string, posX: number, posY: number, type: st
 socket.on("applyBonus", (data: {id: string, type: string}) => {
     activeBonuses = activeBonuses.filter(b => b.id !== data.id);
 	bonus_type_effect_determination(data.type);
+});
+
+socket.on("enemyShoot", (data: { posX: number, posY: number }) => {
+	const maxRenderX = Math.max(canvas.width - ENNEMI_RENDER_WIDTH, 0);
+	const maxRenderY = Math.max(canvas.height - ENNEMI_RENDER_HEIGHT, 0);
+	
+	const renderX = Math.min((data.posX / SERVER_ARENA_WIDTH) * maxRenderX, maxRenderX + ENNEMI_RENDER_WIDTH);
+	const renderY = Math.min((data.posY / SERVER_ARENA_HEIGHT) * maxRenderY, maxRenderY);
+
+	enemyBullets.push({
+		bx: renderX, 
+		by: renderY + (ENNEMI_RENDER_HEIGHT / 2) - (BULLET_RENDER_HEIGHT / 2)
+	});
 });
 
 export function resetRenderedGameState() {
@@ -163,6 +180,11 @@ function render() {
 		context.drawImage(bullet, balle.bx, balle.by, BULLET_RENDER_WIDTH, BULLET_RENDER_HEIGHT);
 		context.globalAlpha = 1.0;
 	});
+
+	enemyBullets.forEach(balle => {
+		context.drawImage(bullet, balle.bx, balle.by, BULLET_RENDER_WIDTH, BULLET_RENDER_HEIGHT)
+	});
+	checkEnemyBulletsCollision();
 	requestAnimationFrame(render);
 }
 
@@ -230,6 +252,45 @@ function bulletsAreColliding(posX: number, posY: number) {
 	}
 
 	return false;
+}
+
+function checkEnemyBulletsCollision() {
+    for (let i = enemyBullets.length - 1; i >= 0; i--) {
+        const balle = enemyBullets[i];
+        
+        const bulletCenterX = balle.bx + BULLET_RENDER_WIDTH / 2;
+        const bulletCenterY = balle.by + BULLET_RENDER_HEIGHT / 2;
+        const playerCenterX = player.posX + PLAYER_RENDER_WIDTH / 2;
+        const playerCenterY = player.posY + PLAYER_RENDER_HEIGHT / 2;
+        
+        const diffX = Math.abs(bulletCenterX - playerCenterX);
+        const diffY = Math.abs(bulletCenterY - playerCenterY);
+        
+        
+        if (diffX < (BULLET_RENDER_WIDTH + PLAYER_RENDER_WIDTH) / 2 &&
+            diffY < (BULLET_RENDER_HEIGHT + PLAYER_RENDER_HEIGHT) / 2) {
+            
+            enemyBullets.splice(i, 1); 
+            
+            if (player.health > 0) {
+                player_hurt_sound.currentTime = 0;
+                player_hurt_sound.play();
+                player.takeHealth();
+                updateHealth();
+                emitHealthUpdate();
+                
+                if (!player.verifyHealth()) {
+                    if (isCoopMode && currentRoomId) socket.emit("playerDied");
+                    menuSelection("over");
+                    ennemy_hit_sound.pause();
+                    ennemy_death_sound.pause();
+                    player_hurt_sound.pause();
+                    bullet_shot_sound.pause();
+                    resetRenderedGameState();
+                }
+            }
+        }
+    }
 }
 
 function bonus_is_colliding(posX:number, posY:number) {

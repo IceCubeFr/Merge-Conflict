@@ -59,6 +59,9 @@ function spawnEnnemi(session: GameSession, sessionId: string) {
 	let imageId = 0;
 	let movementType: "horizontal" | "diagonal" = "horizontal";
 	let verticalSpeed = 0;
+	let shootSpeed = 0;
+	let projectileDamage = 0;
+	let projectileSize = 0;
 
 	if (isHardMode && random < 12) {
 		// Ennemi special: plus rare, deplacement en X+Y et vitesse intermediaire.
@@ -71,14 +74,23 @@ function spawnEnnemi(session: GameSession, sessionId: string) {
 		health = 10;
 		moveSpeed = 5;
 		imageId = 1;
+	} else if(random > 25 && random < 35) {
+		health = 15;
+		moveSpeed = 2;
+		shootSpeed = 0.5
+		projectileDamage = 1;
+		projectileSize = 5;
+		imageId = 2;
 	}
-
 	const newEnnemi = new Ennemi(
 		rightWall + ENNEMI_RENDER_WIDTH,
 		Math.random() * (arenaHeight - ENNEMI_RENDER_HEIGHT),
 		health,
 		moveSpeed,
 		imageId,
+		shootSpeed,
+		projectileDamage,
+		projectileSize,
 		movementType,
 		verticalSpeed,
 	);
@@ -158,6 +170,12 @@ function autoMoveAll() {
 		session.ennemies.forEach((ennemi) => {
 			if (ennemi.posX > leftCleanupLimit) {
 				ennemi.move();
+
+				if (ennemi.shootSpeed && Math.random() < (ennemi.shootSpeed * 0.1)) {
+					session.players.forEach(socketId => {
+						io.to(socketId).emit("enemyShoot", { posX: ennemi.posX, posY: ennemi.posY });
+					});
+				}
 			}
 		});
 
