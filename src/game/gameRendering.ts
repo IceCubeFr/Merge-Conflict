@@ -7,10 +7,15 @@ import {
 	bullet,
 	updateBullets,
 	secondPlayerBullets,
+	enemyBullets,
 	resetBullets,
 } from "./playerShoot.ts";
 import { socket } from "../socket.ts";
-import { menuSelection, isCoopMode, currentRoomId, bonusDisplayUpdate } from "../main.ts";
+import { menuSelection, bonusDisplayUpdate, isMultiplayerMode, isSpectatorMode, multiplayerPlayers, sendMultiPlayerDied, sendMultiEnemyKilled, sendMultiEnemyHurt, sendMultiHealthUpdate } from "../main.ts";
+import { isCoopMode, currentRoomId } from "../gameState.ts";
+import { updateHealth } from "./runManagement.ts";
+
+const skinSelect: HTMLSelectElement = document.querySelector('.skin-select')!;
 
 export const PLAYER_RENDER_WIDTH = 56;
 export const PLAYER_RENDER_HEIGHT = 82;
@@ -21,67 +26,96 @@ const SERVER_ARENA_HEIGHT = 720;
 const BONUS_ITEM_RENDER_WIDTH = 32;
 const BONUS_ITEM_RENDER_HEIGHT = 32;
 
-
-const hearts = document.querySelectorAll(".game-stat-heart:not(.ally-heart)");
-
-const ennemy_hit_sound = new Audio('../../assets/sounds/bullet_hit.wav');
-const ennemy_death_sound = new Audio('../../assets/sounds/monster_death.wav');
-const player_hurt_sound = new Audio('../../assets/sounds/player_hurt.wav');
+export const ennemy_hit_sound = new Audio('../../assets/sounds/bullet_hit.wav');
+export const ennemy_death_sound = new Audio('../../assets/sounds/monster_death.wav');
+export const player_hurt_sound = new Audio('../../assets/sounds/player_hurt.wav');
 export const bullet_shot_sound = new Audio('../../assets/sounds/bullet_shot.wav');
-const bonus_pickup_sound = new Audio('../../assets/sounds/bonus_pickup.wav');
+export const bonus_pickup_sound = new Audio('../../assets/sounds/bonus_pickup.wav');
  
 export const player: Player = new Player(0, 0);
-export const image = new Image();
+const image = new Map<string, HTMLImageElement>();
 export const bonusImage = new Image();
-const ennemiImages = [new Image(), new Image()];
+const ennemiImages = [new Image(), new Image(), new	Image()];
 let ennemies: Ennemi[] = [];
 let activeBonuses: Bonus[] = [];
 let lastEmittedHealth = 3;
-let attackTimeout: NodeJS.Timeout | null = null;
-let speedTimeout: NodeJS.Timeout | null = null;
-let invincibilityTimeout: NodeJS.Timeout | null = null;
 
 export let secondPlayer: SecondPlayer | null = null;
 const secondPlayerImage = new Image();
 
-function refreshPlayerModels() {
-	const playerSkinPath = player.isHost
-		? '../../assets/character/isabelle/RIGHT/mtr1.png'
-		: '../../assets/character/doomGuy/DoomGuy.png';
-	const secondPlayerSkinPath = player.isHost
-		? '/assets/character/doomGuy/DoomGuy.png'
-		: '/assets/character/isabelle/RIGHT/mtr1.png';
+const multiPlayerImages: HTMLImageElement[] = [];
+const multiPlayerSkins = [
+	'/assets/character/isabelle/RIGHT/mtr1.png',
+	'/assets/character/doomGuy/DoomGuy.png',
+	'/assets/character/isabelle/UP/mtt1.png',
+	'/assets/character/doomGuy/DoomGuy.png',
+];
 
-	image.src = playerSkinPath;
-	secondPlayerImage.src = secondPlayerSkinPath;
+for (let i = 0; i < multiPlayerSkins.length; i++) {
+	const img = new Image();
+	img.src = multiPlayerSkins[i];
+	multiPlayerImages.push(img);
 }
 
-refreshPlayerModels();
 secondPlayerImage.src = '/assets/character/isabelle/UP/mtt1.png';
 bonusImage.src = '../../assets/power_up.png';
 
+image.set("isa-lega", new Image());
+image.set("doomguy", new Image());
+image.set("doomguy-purple", new Image());
+image.set("doomguy-orange", new Image());
+image.set("isa-red", new Image());
+image.set("isa-blue", new Image());
+image.set("isa-dark", new Image());
 
-image.src = '../../assets/character/isabelle/RIGHT/mtr1.png';
+image.get("isa-lega")!.src = '/assets/character/isabelle/RIGHT/mtr1.png';
+image.get("isa-red")!.src = '/assets/character/isabelle/rouge.png';
+image.get("isa-blue")!.src = '/assets/character/isabelle/bleue.png';
+image.get("isa-dark")!.src = '/assets/character/isabelle/dark.png';
+image.get('doomguy')!.src = '/assets/character/doomGuy/DoomGuy.png';
+image.get('doomguy-purple')!.src = '/assets/character/doomGuy/purple.png';
+image.get('doomguy-orange')!.src = '/assets/character/doomGuy/orange.png';
+
 ennemiImages[0].src = '../../assets/character/ennemi/mob1/mob1.png';
 ennemiImages[1].src = '../../assets/character/ennemi/mob1/mob12.png';
-player.models.push(image);
+ennemiImages[2].src = '../../assets/character/ennemi/mob1/mob_tir.png'
+player.models.push(image.get(skinSelect.value)!);
 player.models[0].addEventListener('load', () => {
 	requestAnimationFrame(render);
 });
 
+skinSelect.addEventListener('change', (event) => {
+	event.preventDefault();
+	player.models[0] = image.get(skinSelect.value)!;
+});
+
 socket.on("ennemiEvent", (updatedEnnemies: Ennemi[]) => {
-	ennemies = updatedEnnemies;
+	console.log("Client: Received ennemiEvent. Updated enemies count:", updatedEnnemies.length);
+	// Socket payloads are plain objects; rebuild class instances to keep Ennemi methods available.
+	ennemies = updatedEnnemies.map((ennemi) =>
+		new Ennemi(
+			ennemi.posX,
+			ennemi.posY,
+			ennemi.health,
+			ennemi.moveSpeed,
+			ennemi.imageId,
+			1, 1, 1,
+			ennemi.movementType,
+			ennemi.verticalSpeed,
+		),
+	);
 });
 
 socket.on("secondPlayerUpdate", (data: SecondPlayerData) => {
 	if (!isCoopMode) return;
 	if (data.socketId === socket.id) return;
+	const skinId = data.modelId || 'isa-lega';
 
 	if (!secondPlayer) {
-		secondPlayer = new SecondPlayer(data.posX, data.posY, data.socketId);
-		secondPlayer.setModel(secondPlayerImage);
+		secondPlayer = new SecondPlayer(data.posX, data.posY, data.socketId, skinId);
 	} else {
 		secondPlayer.updatePosition(data.posX, data.posY);
+		secondPlayer.skinId = skinId;
 	}
 });
 
@@ -100,13 +134,25 @@ socket.on("applyBonus", (data: {id: string, type: string}) => {
 	bonus_type_effect_determination(data.type);
 });
 
+socket.on("enemyShoot", (data: { posX: number, posY: number }) => {
+	const maxRenderX = Math.max(canvas.width - ENNEMI_RENDER_WIDTH, 0);
+	const maxRenderY = Math.max(canvas.height - ENNEMI_RENDER_HEIGHT, 0);
+	
+	const renderX = Math.min((data.posX / SERVER_ARENA_WIDTH) * maxRenderX, maxRenderX + ENNEMI_RENDER_WIDTH);
+	const renderY = Math.min((data.posY / SERVER_ARENA_HEIGHT) * maxRenderY, maxRenderY);
+
+	enemyBullets.push({
+		bx: renderX, 
+		by: renderY + (ENNEMI_RENDER_HEIGHT / 2) - (BULLET_RENDER_HEIGHT / 2)
+	});
+});
+
 export function resetRenderedGameState() {
 	ennemies = [];
 	player.health = 3;
 	player.killedEnnemies = new Map();
 	secondPlayer = null;
 	lastEmittedHealth = 3;
-	refreshPlayerModels();
 	player.projectileDamage = 1;
 	player.shootSpeed = 10;
 	player.projectileSize = 5;
@@ -116,9 +162,13 @@ export function resetRenderedGameState() {
 }
 
 function emitHealthUpdate() {
-	if (isCoopMode && currentRoomId && player.health !== lastEmittedHealth) {
+	if (player.health !== lastEmittedHealth) {
 		lastEmittedHealth = player.health;
-		socket.emit("healthUpdate", { health: player.health });
+		if (isMultiplayerMode) {
+			sendMultiHealthUpdate(player.health);
+		} else if (isCoopMode && currentRoomId) {
+			socket.emit("healthUpdate", { health: player.health });
+		}
 	}
 }
 
@@ -134,15 +184,28 @@ function areColliding(posX: number, posY: number) {
 }
 
 function render() {
+	// console.log("Client: render loop. Ennemies count:", ennemies.length, "isSpectatorMode:", isSpectatorMode); // Uncomment for very verbose logging
 	context.clearRect(0, 0, canvas.width, canvas.height);
 	player.posX = x;
 	player.posY = y;
 	drawEnnemies();
 	drawBonuses();
-	drawHearts();
+
+	if (isSpectatorMode) {
+		context.globalAlpha = 0.3;
+		context.filter = 'grayscale(100%)';
+	}
 	context.drawImage(player.models[0], player.posX, player.posY, PLAYER_RENDER_WIDTH, PLAYER_RENDER_HEIGHT);
+	context.filter = 'none';
+	context.globalAlpha = 1.0;
 	drawPlayerLabel(player.posX, player.posY, "VOUS");
+
 	drawSecondPlayer();
+
+	if (isMultiplayerMode) {
+		drawMultiplayerPlayers();
+	}
+
 	updateBullets();
 
 	activeBullets.forEach(balle => {
@@ -155,6 +218,10 @@ function render() {
 		context.globalAlpha = 1.0;
 	});
 
+	enemyBullets.forEach(balle => {
+		context.drawImage(bullet, balle.bx, balle.by, BULLET_RENDER_WIDTH, BULLET_RENDER_HEIGHT)
+	});
+	checkEnemyBulletsCollision();
 	requestAnimationFrame(render);
 }
 
@@ -174,18 +241,73 @@ function drawPlayerLabel(renderX: number, renderY: number, label: string) {
 	context.restore();
 }
 
+function drawDeadOverlay(renderX: number, renderY: number) {
+	context.save();
+	context.fillStyle = 'rgba(0, 0, 0, 0.55)';
+	context.fillRect(renderX, renderY, PLAYER_RENDER_WIDTH, PLAYER_RENDER_HEIGHT);
+
+	context.font = "bold 16px Arial";
+	context.textAlign = "center";
+	context.textBaseline = "middle";
+	context.strokeStyle = "#000000";
+	context.fillStyle = "#f0f0f0";
+	context.lineWidth = 3;
+
+	const centerX = renderX + PLAYER_RENDER_WIDTH / 2;
+	const centerY = renderY + PLAYER_RENDER_HEIGHT / 2;
+	context.strokeText("MORT", centerX, centerY);
+	context.fillText("MORT", centerX, centerY);
+	context.restore();
+}
+
 function drawSecondPlayer() {
-	if (!secondPlayer || !secondPlayer.model || !secondPlayer.model.complete) return;
+	if (!secondPlayer) return;
 
 	const maxRenderX = Math.max(canvas.width - PLAYER_RENDER_WIDTH, 0);
 	const maxRenderY = Math.max(canvas.height - PLAYER_RENDER_HEIGHT, 0);
 	const renderX = Math.min((secondPlayer.posX / SERVER_ARENA_WIDTH) * maxRenderX, maxRenderX);
 	const renderY = Math.min((secondPlayer.posY / SERVER_ARENA_HEIGHT) * maxRenderY, maxRenderY);
+	const secondPlayerSkin = image.get(secondPlayer.skinId) ?? image.get('isa-lega');
+	if (!secondPlayerSkin) return;
 
 	context.globalAlpha = 0.8;
-	context.drawImage(secondPlayer.model, renderX, renderY, PLAYER_RENDER_WIDTH, PLAYER_RENDER_HEIGHT);
+	context.drawImage(secondPlayerSkin, renderX, renderY, PLAYER_RENDER_WIDTH, PLAYER_RENDER_HEIGHT);
 	context.globalAlpha = 1.0;
 	drawPlayerLabel(renderX, renderY, "J2");
+}
+
+function drawMultiplayerPlayers() {
+	const maxRenderX = Math.max(canvas.width - PLAYER_RENDER_WIDTH, 0);
+	const maxRenderY = Math.max(canvas.height - PLAYER_RENDER_HEIGHT, 0);
+
+	multiplayerPlayers.forEach((p, socketId) => {
+		if (socketId === socket.id) return;
+
+		const renderX = Math.min((p.posX / SERVER_ARENA_WIDTH) * maxRenderX, maxRenderX);
+		const renderY = Math.min((p.posY / SERVER_ARENA_HEIGHT) * maxRenderY, maxRenderY);
+
+		const skinImg = image.get(p.skinIndex)!;
+		if (p.status === 'spectator') {
+			context.globalAlpha = 0.2;
+			context.filter = 'grayscale(100%) contrast(60%) brightness(70%)';
+		} else {
+			context.globalAlpha = 0.85;
+		}
+
+		if (skinImg && skinImg.complete) {
+			context.drawImage(skinImg, renderX, renderY, PLAYER_RENDER_WIDTH, PLAYER_RENDER_HEIGHT);
+		}
+
+		context.filter = 'none';
+		context.globalAlpha = 1.0;
+
+		if (p.status === 'spectator') {
+			drawDeadOverlay(renderX, renderY);
+		}
+
+		const label = p.pseudo.substring(0, 6);
+		drawPlayerLabel(renderX, renderY, label);
+	});
 }
 
 function bulletsAreColliding(posX: number, posY: number) {
@@ -224,6 +346,47 @@ function bulletsAreColliding(posX: number, posY: number) {
 	return false;
 }
 
+function checkEnemyBulletsCollision() {
+    for (let i = enemyBullets.length - 1; i >= 0; i--) {
+        const balle = enemyBullets[i];
+		if(balle) {
+			
+			const bulletCenterX = balle.bx + BULLET_RENDER_WIDTH / 2;
+			const bulletCenterY = balle.by + BULLET_RENDER_HEIGHT / 2;
+			const playerCenterX = player.posX + PLAYER_RENDER_WIDTH / 2;
+			const playerCenterY = player.posY + PLAYER_RENDER_HEIGHT / 2;
+			
+			const diffX = Math.abs(bulletCenterX - playerCenterX);
+			const diffY = Math.abs(bulletCenterY - playerCenterY);
+			
+			
+			if (diffX < (BULLET_RENDER_WIDTH + PLAYER_RENDER_WIDTH) / 2 &&
+				diffY < (BULLET_RENDER_HEIGHT + PLAYER_RENDER_HEIGHT) / 2) {
+				
+				enemyBullets.splice(i, 1); 
+				
+				if (player.health > 0) {
+					player_hurt_sound.currentTime = 0;
+					player_hurt_sound.play();
+					player.takeHealth();
+					updateHealth();
+					emitHealthUpdate();
+					
+					if (!player.verifyHealth()) {
+						if (isCoopMode && currentRoomId) socket.emit("playerDied");
+						menuSelection("over");
+						pauseAudio(ennemy_death_sound);
+						pauseAudio(ennemy_hit_sound);
+						pauseAudio(player_hurt_sound);
+						pauseAudio(bullet_shot_sound);
+						resetRenderedGameState();
+					}
+				}
+			}
+		}
+    }
+}
+
 function bonus_is_colliding(posX:number, posY:number) {
 	const diffX = Math.abs(x - posX);
 	const diffY = Math.abs(y - posY);
@@ -232,35 +395,31 @@ function bonus_is_colliding(posX:number, posY:number) {
 
 function bonus_type_effect_determination(type: string) {
 	switch (type) {
-				case "attack":
-					bonusDisplayUpdate(type);
-					bonus_pickup_sound.currentTime = 0;
-					bonus_pickup_sound.play();
-					player.projectileDamage = 15;
-					if (attackTimeout) clearTimeout(attackTimeout);
-            		console.log("Bonus ramassé ! Dégâts actuels :", player.projectileDamage);
-					attackTimeout = setTimeout(() => { player.projectileDamage = 1; }, 10000);
-					break;
-				case "speed":
-					bonusDisplayUpdate(type);
-					bonus_pickup_sound.currentTime = 0;
-					bonus_pickup_sound.play();
-					player.shootSpeed = 25;
-					if (speedTimeout) clearTimeout(speedTimeout);
-            		console.log("Bonus ramassé ! Vitesse actuelle :", player.shootSpeed);
-					speedTimeout = setTimeout(() => { player.shootSpeed = 10; }, 10000);
-					break;
-				case "invincibility":
-					bonusDisplayUpdate(type);
-					bonus_pickup_sound.currentTime = 0;
-					bonus_pickup_sound.play();
-					player.invincibility = true;
-					if (invincibilityTimeout) clearTimeout(invincibilityTimeout);
-					console.log("Bonus ramassé ! Invincibilité activée pendant 5 secondes: ", player.invincibility);
-                	invincibilityTimeout = setTimeout(() => { player.invincibility = false; }, 5000);
-					break;	
-			}
+		case "attack":
+			bonusDisplayUpdate(type);
+			bonus_pickup_sound.currentTime = 0;
+			bonus_pickup_sound.play();
+			player.projectileDamage *= 2;
+			setTimeout(() => { player.projectileDamage = player.projectileDamage / 2; }, 10000);
+			break;
+		case "speed":
+			bonusDisplayUpdate(type);
+			bonus_pickup_sound.currentTime = 0;
+			bonus_pickup_sound.play();
+			player.shootSpeed = 25;
+			setTimeout(() => { player.shootSpeed = 10; }, 10000);
+			break;
+		case "invincibility":
+			bonusDisplayUpdate(type);
+			bonus_pickup_sound.currentTime = 0;
+			bonus_pickup_sound.play();
+			player.invincibility = true;
+			setTimeout(() => { player.invincibility = false; }, 5000);
+			break;	
+	}
 }
+
+
 
 
 function drawBonuses() {
@@ -288,56 +447,84 @@ function drawBonuses() {
     }
 }
 
-
-function drawHearts() {
-	for (let i = 0; i < hearts.length; i++) {
-		if (i < player.health) {
-			hearts[i].setAttribute("src", "/assets/HeartIcon.png");
-			hearts[i].setAttribute("alt", "coeur de vie plein");
-		} else {
-			hearts[i].setAttribute("src", "/assets/HeartIconEmpty.png");
-			hearts[i].setAttribute("alt", "coeur de vie vide");
-		}
-	}
-}
-
 function drawEnnemies() {
 	const maxRenderX = Math.max(canvas.width - ENNEMI_RENDER_WIDTH, 0);
 	const maxRenderY = Math.max(canvas.height - ENNEMI_RENDER_HEIGHT, 0);
 
+	if (isSpectatorMode) {
+		for (let i = ennemies.length - 1; i >= 0; i--) {
+			const ennemi = ennemies[i];
+			if (!ennemi) continue;
+			const renderX = Math.min((ennemi.posX / SERVER_ARENA_WIDTH) * maxRenderX, maxRenderX + ENNEMI_RENDER_WIDTH);
+			const renderY = Math.min((ennemi.posY / SERVER_ARENA_HEIGHT) * maxRenderY, maxRenderY);
+			const ennemiImage = ennemiImages[ennemi.imageId] ?? ennemiImages[0];
+			context.drawImage(ennemiImage, renderX, renderY, ENNEMI_RENDER_WIDTH, ENNEMI_RENDER_HEIGHT);
+		}
+		return;
+	}
 
 	for (let i = ennemies.length - 1; i >= 0; i--) {
 		const ennemi = ennemies[i];
+		if (!ennemi) continue;
+
 		const renderX = Math.min((ennemi.posX / SERVER_ARENA_WIDTH) * maxRenderX, maxRenderX + ENNEMI_RENDER_WIDTH);
 		const renderY = Math.min((ennemi.posY / SERVER_ARENA_HEIGHT) * maxRenderY, maxRenderY);
 
 		if (bulletsAreColliding(renderX, renderY)) {
-			socket.emit("enemyHurt", i, player.projectileDamage);
+			if (isMultiplayerMode) {
+				sendMultiEnemyHurt(i, player.projectileDamage);
+			} else {
+				socket.emit("enemyHurt", i, player.projectileDamage);
+			}
 			ennemi.health -= player.projectileDamage;
 			ennemy_hit_sound.currentTime = 0;
 			ennemy_hit_sound.play();
 			if (ennemi.health <= 0) {
-				socket.emit("enemyKilled");
+				if (isMultiplayerMode) {
+					sendMultiEnemyKilled(i);
+				} else {
+					socket.emit("enemyKilled");
+				}
 				ennemy_death_sound.currentTime = 0;
 				ennemy_death_sound.play();
 			}
 		}
 
-		if (player.health > 0 && areColliding(renderX, renderY)) {
+		if (areColliding(renderX, renderY)) {
 			player_hurt_sound.currentTime = 0;
 			player_hurt_sound.play();
 			player.takeHealth();
+			updateHealth();
 			emitHealthUpdate();
+			ennemies.splice(i, 1);
+
+			if (isMultiplayerMode) {
+				sendMultiEnemyKilled(i);
+			} else {
+				socket.emit("enemyKilled", i);
+			}
+
 			if (!player.verifyHealth()) {
-				if (isCoopMode && currentRoomId) {
+				if (isMultiplayerMode) {
+					sendMultiPlayerDied();
+				} else if (isCoopMode && currentRoomId) {
 					socket.emit("playerDied");
+					menuSelection("over");
+					pauseAudio(ennemy_death_sound);
+					pauseAudio(ennemy_hit_sound);
+					pauseAudio(player_hurt_sound);
+					pauseAudio(bullet_shot_sound);
+					resetRenderedGameState();
+					return;
+				} else {
+					menuSelection("over");
+					pauseAudio(ennemy_death_sound);
+					pauseAudio(ennemy_hit_sound);
+					pauseAudio(player_hurt_sound);
+					pauseAudio(bullet_shot_sound);
+					resetRenderedGameState();
+					return;
 				}
-				menuSelection("over");
-				ennemy_hit_sound.pause();
-				ennemy_death_sound.pause();
-				player_hurt_sound.pause();
-				bullet_shot_sound.pause();
-				resetRenderedGameState();
 			}
 		}
 
@@ -345,7 +532,8 @@ function drawEnnemies() {
 			ennemi.kill();
 		}
 
-		context.drawImage(ennemiImages[ennemi.imageId], renderX, renderY, ENNEMI_RENDER_WIDTH, ENNEMI_RENDER_HEIGHT);
+		const ennemiImage = ennemiImages[ennemi.imageId] ?? ennemiImages[0];
+		context.drawImage(ennemiImage, renderX, renderY, ENNEMI_RENDER_WIDTH, ENNEMI_RENDER_HEIGHT);
 	}
 }
 
@@ -356,4 +544,13 @@ function resampleCanvas() {
 	if (canvas.clientWidth === 0 || canvas.clientHeight === 0) return;
 	canvas.width = canvas.clientWidth;
 	canvas.height = canvas.clientHeight;
+}
+
+function pauseAudio(audio: HTMLAudioElement) {
+	let audioPlaying = audio.play();
+	if(audioPlaying !== undefined) {
+		audioPlaying.then(_ => {
+			audio.pause();
+		})
+	}
 }

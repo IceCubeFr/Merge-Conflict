@@ -3,21 +3,28 @@ import { resetRenderedGameState } from "./gameRendering.ts";
 import { resetPlayerPosition } from "./playerMovement.ts";
 import { socket } from "../socket.ts";
 import { player } from "./gameRendering.ts";
-import { isCoopMode } from "../main.ts";
+import { difficulty } from "../main.ts";
+import { isCoopMode } from "../gameState.ts";
 
 const gameTimeLabel = document.querySelector(".game-time-label");
 const gameKillsLabel = document.querySelector(".game-kills-label");
 const gameScoreLabel = document.querySelector(".game-score-label");
 const overSummaryTimeKills = document.querySelector(".over-summary-time-kills");
 const overSummaryScore = document.querySelector(".over-summary-score");
+const healthContainer = document.querySelector(".health-container")!;
+const audio: HTMLAudioElement = document.querySelector('.game-background-music')!;
+
 const scoreAtDeath = [100, 200];
+const DEFAULT_HEALTH = 3;
 
 let gameTimer: ReturnType<typeof setInterval> | undefined;
 let gameStartTimeMs = 0;
+let audioPlaying = audio.play();
 let lastRunStats: GameRunStats | undefined;
 let isGameOver = false;
 let finalScore = 0;
 let finalSurvivalSeconds = 0;
+export let maxHealth = 3;
 
 export function getLastRunStats() {
     return lastRunStats;
@@ -32,6 +39,7 @@ export function resetCurrentGame() {
     finalScore = 0;
     finalSurvivalSeconds = 0;
     updateInGameStats(0);
+    pauseAudio();
     socket.emit("stopPlaying");
 }
 
@@ -39,7 +47,25 @@ export function startNewGame() {
     stopGameTimer();
     resetPlayerPosition();
     resetRenderedGameState();
+    audio.play();
     player.killedEnnemies = new Map();
+    switch(difficulty) {
+        case 0:
+            player.health = 3 * DEFAULT_HEALTH;
+            maxHealth = 3 * DEFAULT_HEALTH;
+            player.projectileDamage = 3;
+            break;
+        case 1:
+            player.health = 2 * DEFAULT_HEALTH;
+            maxHealth = 2 * DEFAULT_HEALTH;
+            player.projectileDamage = 2;
+            break;
+        default:
+            player.health = DEFAULT_HEALTH;
+            maxHealth = DEFAULT_HEALTH;
+            player.projectileDamage = 1;
+            break;
+    }
     isGameOver = false;
     finalScore = 0;
     finalSurvivalSeconds = 0;
@@ -51,6 +77,7 @@ export function startGameTimer() {
     isGameOver = false;
     gameStartTimeMs = Date.now();
     updateInGameStats(0);
+    updateHealth();
     gameTimer = setInterval(() => {
         if (!isGameOver) {
             const elapsedSeconds = Math.floor((Date.now() - gameStartTimeMs) / 1000);
@@ -63,6 +90,14 @@ export function stopGameTimer() {
     if (gameTimer) {
         clearInterval(gameTimer);
         gameTimer = undefined;
+    }
+}
+
+function pauseAudio() {
+    if(audioPlaying !== undefined) {
+        audioPlaying.then(_ => {
+            audio.pause();
+        })
     }
 }
 
@@ -80,6 +115,10 @@ function updateInGameStats(elapsedSeconds: number) {
     if (gameScoreLabel) {
         gameScoreLabel.textContent = `Score : ${displayScore}`;
     }
+}
+
+export function updateHealth() {
+    healthContainer.innerHTML = `<img class="game-stat-heart" src="/assets/HeartIcon.png" alt="coeur de vie plein" height="50px">`.repeat(player.health) + `<img class="game-stat-heart" src="/assets/HeartIconEmpty.png" alt="coeur de vie vide" height="50px">`.repeat(maxHealth - player.health);
 }
 
 function formatDuration(totalSeconds: number) {
@@ -131,6 +170,16 @@ export function finalizeCurrentRun(saveScore: boolean) {
     }
 }
 
+export function getSeconds(): number {
+    if (isGameOver) return finalSurvivalSeconds;
+    return Math.max(0, Math.floor((Date.now() - gameStartTimeMs) / 1000));
+}
+
+export function computeCurrentScore(): number {
+    const seconds = getSeconds();
+    return computeScore(seconds, player.killedEnnemies);
+}
+
 function getNbKilledEnnemies(killed: Map<number, number>):number {
     let nb = 0;
     killed.forEach((score) => {
@@ -138,3 +187,5 @@ function getNbKilledEnnemies(killed: Map<number, number>):number {
     });
     return nb;
 }
+
+pauseAudio();

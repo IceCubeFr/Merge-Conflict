@@ -13,6 +13,14 @@ export interface BestScore {
     date:Date;
 }
 
+export type InputMode = "keyboard" | "mouse";
+
+export interface GameSettings {
+    volume: number;
+    soundEffects: number;
+    inputMode: InputMode;
+}
+
 export interface LeaderboardEntry {
     pseudo:string;
     score:number;
@@ -29,8 +37,6 @@ export interface GameRunStats {
 }
 
 export class Player {
-    // Idée : Ajouter des types de projectile avec effets différents
-    // Exemple : type électrique qui touche plusieurs ennemis comme l'électro-sorcier
     posX:number;
     posY:number;
     pseudo: string;
@@ -104,19 +110,50 @@ export class Ennemi {
     posX:number;
     posY:number;
     health:number;
+    shootSpeed?: number;
+    projectileSize?: number;
+    projectileDamage?:number;
     moveSpeed:number;
     imageId: number;
+    movementType: "horizontal" | "diagonal";
+    verticalSpeed: number;
 
-    constructor(posX:number, posY:number, health:number, moveSpeed:number, imageId: number ) {
+    constructor(
+        posX:number,
+        posY:number,
+        health:number = 1,
+        moveSpeed:number = 1,
+        imageId: number, shootSpeed?:number, projectileSize?:number, projectileDamage?:number,
+        movementType: "horizontal" | "diagonal" = "horizontal",
+        verticalSpeed: number = 0,
+    ) {
         this.health = health;
         this.moveSpeed = moveSpeed;
         this.posX = posX;
         this.posY = posY;
         this.imageId = imageId;
+        this.shootSpeed = shootSpeed ?? 0;
+        this.projectileSize = projectileSize ?? 0;
+        this.projectileDamage = projectileDamage ?? 0;
+        this.movementType = movementType ?? "horizontal";
+        this.verticalSpeed = verticalSpeed ?? 0;
     }
 
-    move() {
+    move(arenaMaxY: number = 720, ennemiHeight: number = 64) {
         this.posX -= this.moveSpeed * 3;
+
+        if (this.movementType === "diagonal") {
+            this.posY += this.verticalSpeed * 3 ;
+
+            const maxY = Math.max(0, arenaMaxY - ennemiHeight);
+            if (this.posY <= 0) {
+                this.posY = 0;
+                this.verticalSpeed = Math.abs(this.verticalSpeed);
+            } else if (this.posY >= maxY) {
+                this.posY = maxY;
+                this.verticalSpeed = -Math.abs(this.verticalSpeed);
+            }
+        }
     }
 
     shoot() {
@@ -151,26 +188,71 @@ export interface SecondPlayerData {
     posX: number;
     posY: number;
     socketId: string;
+    modelId: string;
+}
+
+export type MultiplayerPlayerStatus = 'waiting' | 'playing' | 'spectator' | 'disconnected';
+
+export interface MultiplayerPlayerData {
+    socketId: string;
+    pseudo: string;
+    status: MultiplayerPlayerStatus;
+    posX: number;
+    posY: number;
+    health: number;
+    score: number;
+    killedEnemies: Record<number, number>;
+    survivalSeconds: number;
+    isHost: boolean;
+    skinIndex: string;
+}
+
+export interface MultiplayerRoomConfig {
+    difficulty: number;
+    maxPlayers: number;
+}
+
+export interface MultiplayerRoomData {
+    id: string;
+    hostId: string;
+    config: MultiplayerRoomConfig;
+    players: Map<string, MultiplayerPlayerData>;
+    disconnectedPlayers: Map<string, MultiplayerPlayerData>;
+    status: 'waiting' | 'playing' | 'ended';
+    gameStartTime?: number;
+}
+
+export interface MultiplayerRoomInfo {
+    id: string;
+    hostPseudo: string;
+    playerCount: number;
+    maxPlayers: number;
+    difficulty: number;
+}
+
+export interface MultiplayerEndGameStats {
+    pseudo: string;
+    score: number;
+    killedEnemies: number;
+    survivalSeconds: number;
+    status: 'alive' | 'dead';
 }
 
 export class SecondPlayer {
     posX: number;
     posY: number;
     socketId: string;
-    model: HTMLImageElement | null = null;
+    skinId: string;
 
-    constructor(posX: number, posY: number, socketId: string) {
+    constructor(posX: number, posY: number, socketId: string, skinId:string) {
         this.posX = posX;
         this.posY = posY;
         this.socketId = socketId;
+        this.skinId = skinId;
     }
 
     updatePosition(posX: number, posY: number) {
         this.posX = posX;
         this.posY = posY;
-    }
-
-    setModel(image: HTMLImageElement) {
-        this.model = image;
     }
 }

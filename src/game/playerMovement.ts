@@ -11,12 +11,23 @@ export let x: number = 0,
 let mouseTargetX: number | null = null,
  mouseTargetY: number | null = null;
 
-const KEYBOARD_MOVE_SPEED = 3;
+const MAX_SPEED = 15;
+const MAX_MOUSE_SPEED = 4;
+const movingKeys = {
+	"up": false,
+	"down": false,
+	"left": false,
+	"right": false
+}
+const ACCELERATION = 0.5;
+const FRICTION = 0.85;
 
 import { getInputMode } from "../Parameter.ts";
 import { PLAYER_RENDER_HEIGHT, PLAYER_RENDER_WIDTH} from "./gameRendering.ts";
 import { socket } from "../socket.ts";
-import { isCoopMode } from "../main.ts";
+import { isCoopMode } from "../gameState.ts";
+import {  isMultiplayerMode, isSpectatorMode, sendMultiPlayerMove } from "../main.ts";
+const skinSelect = document.querySelector<HTMLSelectElement>('.skin-select');
 
 // Server arena dimensions for coordinate conversion
 const SERVER_ARENA_WIDTH = 1980;
@@ -32,11 +43,16 @@ function toServerCoords(localX: number, localY: number) {
 	};
 }
 
-// Emit player position for coop mode
 function emitPlayerPosition() {
-	if (isCoopMode) {
-		const serverCoords = toServerCoords(x, y);
-		socket.emit("playerMove", serverCoords);
+	if (isSpectatorMode) return;
+
+	const serverCoords = toServerCoords(x, y);
+	const modelId = skinSelect?.value ?? "isa-lega";
+
+	if (isMultiplayerMode) {
+		sendMultiPlayerMove(serverCoords.posX, serverCoords.posY);
+	} else if (isCoopMode) {
+		socket.emit("playerMove", { ...serverCoords, modelId });
 	}
 }
 
@@ -44,7 +60,12 @@ function emitPlayerPosition() {
 socket.on("requestPositionUpdate", () => {
 	if (isCoopMode) {
 		const serverCoords = toServerCoords(x, y);
-		socket.emit("playerMove", serverCoords);
+		const modelId = skinSelect?.value ?? "isa-lega";
+		socket.emit("playerMove", {
+			posX: serverCoords.posX,
+			posY: serverCoords.posY,
+			modelId,
+		});
 	}
 });
 
@@ -75,33 +96,11 @@ function moveWithMouse() {
 		return;
 	}
 
-	const step = Math.min(KEYBOARD_MOVE_SPEED, distance);
+	const step = Math.min(MAX_MOUSE_SPEED, distance);
 	x += (diffX / distance) * step;
 	y += (diffY / distance) * step;
 	clampPosition();
 }
-
-// Gestion du mouvement du personnage
-function move() {
-	if (getInputMode() === "mouse") {
-		vx = 0;
-		vy = 0;
-		moveWithMouse();
-		emitPlayerPosition();
-		return;
-	}
-
-	if (x >= canvas.width - PLAYER_RENDER_WIDTH && vx > 0) x -= 2 * vx;
-	else if (x <= 0 && vx < 0) x -= 2 * vx;
-
-	if (y >= canvas.height - PLAYER_RENDER_HEIGHT && vy > 0) y -= 2 * vy;
-	else if (y <= 0 && vy < 0) y -= 2 * vy;
-	x += vx;
-	y += vy;
-	clampPosition();
-	emitPlayerPosition();
-}
-setInterval(move, 1000 / 60);
 
 document.addEventListener('keydown', event => {
 	if (getInputMode() !== "keyboard") {
@@ -112,22 +111,22 @@ document.addEventListener('keydown', event => {
         case 'Z':
 		case 'z' :
 		case 'ArrowUp':
-			vy = -KEYBOARD_MOVE_SPEED;
+			movingKeys["up"] = true;
 			break;
         case 'S':
 		case 's':
 		case 'ArrowDown':
-			vy = KEYBOARD_MOVE_SPEED;
+			movingKeys["down"] = true;
 			break;
         case 'Q':
 		case 'q':
 		case 'ArrowLeft':
-			vx = -KEYBOARD_MOVE_SPEED;
+			movingKeys["left"] = true;
 			break;
         case 'D':
 		case 'd':
 		case 'ArrowRight':
-			vx = KEYBOARD_MOVE_SPEED;
+			movingKeys["right"] = true;
 			break;
 	}
 });
@@ -141,22 +140,23 @@ document.addEventListener('keyup', event => {
         case 'Z':
 		case 'z' :
 		case 'ArrowUp':
-			vy = 0;
+			movingKeys["up"] = false;
 			break;
         case 'S':
 		case 's':
 		case 'ArrowDown':
-			vy = 0;
+			movingKeys["down"] = false;
 			break;
         case 'Q':
 		case 'q':
 		case 'ArrowLeft':
-			vx = 0;
+			movingKeys["left"] = false;
 			break;
         case 'D':
 		case 'd':
 		case 'ArrowRight':
-			vx = 0;
+			movingKeys["right"] = false;
+			break;
 	}
 });
 
@@ -176,3 +176,39 @@ window.addEventListener("gameSettingsApplied", () => {
 	vy = 0;
 });
 
+function move() {
+	if (getInputMode() === "mouse") {
+		vx = 0;
+		vy = 0;
+		moveWithMouse();
+		emitPlayerPosition();
+		return;
+	}
+
+    if (movingKeys.up)    vy -= ACCELERATION;
+    if (movingKeys.down)  vy += ACCELERATION;
+    if (movingKeys.left)  vx -= ACCELERATION;
+    if (movingKeys.right) vx += ACCELERATION;
+
+    vx *= FRICTION;
+    vy *= FRICTION;
+
+    if (Math.abs(vx) < 0.01) vx = 0;
+    if (Math.abs(vy) < 0.01) vy = 0;
+
+    vx = Math.max(-MAX_SPEED, Math.min(MAX_SPEED, vx));
+    vy = Math.max(-MAX_SPEED, Math.min(MAX_SPEED, vy));
+
+	x += vx;
+	y += vy;
+
+	if (x >= canvas.width - PLAYER_RENDER_WIDTH && vx > 0) x -= 2 * vx;
+	else if (x <= 0 && vx < 0) x -= 2 * vx;
+
+	if (y >= canvas.height - PLAYER_RENDER_HEIGHT && vy > 0) y -= 2 * vy;
+	else if (y <= 0 && vy < 0) y -= 2 * vy;
+
+	clampPosition();
+	emitPlayerPosition();
+}
+setInterval(move, 1000 / 60);

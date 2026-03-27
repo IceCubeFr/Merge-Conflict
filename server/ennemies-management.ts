@@ -10,6 +10,9 @@ const spawnAccelerationMs = 100;
 const ENNEMI_RENDER_WIDTH = 64;
 const ENNEMI_RENDER_HEIGHT = 64;
 
+const BASE_MAX_ENEMIES = 50;
+const MAX_PLAYER_MULTIPLIER = 5;
+
 interface GameSession {
 	ennemies: Ennemi[];
 	playing: boolean;
@@ -17,6 +20,9 @@ interface GameSession {
 	spawnTimeout: NodeJS.Timeout | undefined;
 	players: Set<string>;
 	isCoop: boolean;
+	difficulty: number;
+	isMultiplayer: boolean;
+	playerCount: number;
 }
 
 const sessions: Map<string, GameSession> = new Map();
@@ -25,17 +31,29 @@ function getSession(sessionId: string): GameSession | undefined {
 	return sessions.get(sessionId);
 }
 
-function createSession(sessionId: string, isCoop: boolean): GameSession {
+function createSession(sessionId: string, isCoop: boolean, difficulty: number, isMultiplayer: boolean = false, playerCount: number = 1): GameSession {
 	const session: GameSession = {
 		ennemies: [],
 		playing: false,
 		currentSpawnIntervalMs: initialSpawnIntervalMs,
 		spawnTimeout: undefined,
 		players: new Set(),
-		isCoop
+		isCoop,
+		difficulty,
+		isMultiplayer,
+		playerCount,
 	};
 	sessions.set(sessionId, session);
 	return session;
+}
+
+function getMaxEnemies(session: GameSession): number {
+	if (!session.isMultiplayer) {
+		return BASE_MAX_ENEMIES;
+	}
+	// Scale by player count, max x5
+	const multiplier = Math.min(session.playerCount, MAX_PLAYER_MULTIPLIER);
+	return BASE_MAX_ENEMIES * multiplier;
 }
 
 function deleteSession(sessionId: string) {
@@ -49,19 +67,56 @@ function deleteSession(sessionId: string) {
 }
 
 function spawnEnnemi(session: GameSession, sessionId: string) {
-	const random: number = Math.round(Math.random() * 100);
-	let health = 25, moveSpeed = 1, url = 0;
-	if(random < 25) {
+	const random: number = Math.random() * 100;
+	const isHardMode = session.difficulty === 2;
+
+	let health = 25;
+	let moveSpeed = 1;
+	let imageId = 0;
+	let movementType: "horizontal" | "diagonal" = "horizontal";
+	let verticalSpeed = 0;
+	let shootSpeed = 0;
+	let projectileDamage = 0;
+	let projectileSize = 0;
+
+	if (isHardMode && random < 12) {
+		// Ennemi special: plus rare, deplacement en X+Y et vitesse intermediaire.
+		health = 18;
+		moveSpeed = 3;
+		imageId = 1;
+		movementType = "diagonal";
+		verticalSpeed = (Math.random() > 0.5 ? 1 : -1) * 2;
+	} else if (random < 25) {
 		health = 10;
 		moveSpeed = 5;
-		url = 1;
+		imageId = 1;
+	} else if(random > 25 && random < 35) {
+		health = 15;
+		moveSpeed = 2;
+		shootSpeed = 0.5
+		projectileDamage = 1;
+		projectileSize = 5;
+		imageId = 2;
 	}
-	const newEnnemi = new Ennemi(rightWall + ENNEMI_RENDER_WIDTH, Math.random() * (arenaHeight - ENNEMI_RENDER_HEIGHT), health, moveSpeed, url);
+	const newEnnemi = new Ennemi(
+		rightWall + ENNEMI_RENDER_WIDTH,
+		Math.random() * (arenaHeight - ENNEMI_RENDER_HEIGHT),
+		health,
+		moveSpeed,
+		imageId,
+		shootSpeed,
+		projectileDamage,
+		projectileSize,
+		movementType,
+		verticalSpeed,
+	);
 	session.ennemies.push(newEnnemi);
+	console.log(`Server: Spawning ennemi for session ${sessionId}. Total: ${session.ennemies.length}`);
 	session.players.forEach(socketId => {
+		console.log(`Server: Emitting ennemiEvent to ${socketId} for session ${sessionId}. Ennemies count: ${session.ennemies.length}`);
 		io.to(socketId).emit("ennemiEvent", session.ennemies);
 	});
-	console.log(`[Session ${sessionId}] Ennemi spawned. Total: ${session.ennemies.length}`);
+	
 }
 
 export function removeEnnemi(sessionId: string, index: number) {
@@ -106,7 +161,8 @@ function scheduleNextSpawn(session: GameSession, sessionId: string) {
 	session.spawnTimeout = setTimeout(() => {
 		if (!session.playing) return;
 
-		if (session.ennemies.length < 50) {
+		const maxEnemies = getMaxEnemies(session);
+		if (session.ennemies.length < maxEnemies) {
 			spawnEnnemi(session, sessionId);
 		}
 
@@ -133,6 +189,12 @@ function autoMoveAll() {
 		session.ennemies.forEach((ennemi) => {
 			if (ennemi.posX > leftCleanupLimit) {
 				ennemi.move();
+
+				if (ennemi.shootSpeed && Math.random() < (ennemi.shootSpeed * 0.1)) {
+					session.players.forEach(socketId => {
+						io.to(socketId).emit("enemyShoot", { posX: ennemi.posX, posY: ennemi.posY });
+					});
+				}
 			}
 		});
 
@@ -143,17 +205,18 @@ function autoMoveAll() {
 		}
 
 		session.players.forEach(socketId => {
+			// console.log(`Server: Emitting ennemiEvent (autoMoveAll) to ${socketId} for session ${_sessionId}. Ennemies count: ${session.ennemies.length}`); // Uncomment for very verbose logging
 			io.to(socketId).emit("ennemiEvent", session.ennemies);
 		});
 	});
 }
 setInterval(autoMoveAll, 100);
 
-export function startPlaying(sessionId: string, socketId: string, isCoop: boolean) {
+export function startPlaying(sessionId: string, socketId: string, isCoop: boolean, difficulty: number) {
 	let session = getSession(sessionId);
 
 	if (!session) {
-		session = createSession(sessionId, isCoop);
+		session = createSession(sessionId, isCoop, difficulty);
 	}
 
 	session.players.add(socketId);
@@ -162,6 +225,7 @@ export function startPlaying(sessionId: string, socketId: string, isCoop: boolea
 	const shouldReset = !isCoop || !session.playing;
 
 	if (shouldReset) {
+		session.difficulty = difficulty;
 		resetSpawnTimer(session);
 		session.ennemies.length = 0;
 		session.playing = true;
@@ -196,4 +260,50 @@ export function playerDisconnected(socketId: string) {
 			stopPlaying(sessionId, socketId);
 		}
 	});
+}
+
+export function startMultiplayerGame(sessionId: string, playerCount: number, difficulty: number, players: string[]) {
+	let session = getSession(sessionId);
+
+	if (!session) {
+		session = createSession(sessionId, false, difficulty, true, playerCount);
+	} else {
+		session.isMultiplayer = true;
+		session.playerCount = playerCount;
+		session.difficulty = difficulty;
+	}
+	
+	players.forEach(p => session!.players.add(p));
+
+	resetSpawnTimer(session);
+	session.ennemies.length = 0;
+	session.playing = true;
+
+	// Initial spawns based on player count
+	const initialSpawns = Math.min(playerCount, 3);
+	for (let i = 0; i < initialSpawns; i++) {
+		spawnEnnemi(session, sessionId);
+	}
+
+	scheduleNextSpawn(session, sessionId);
+	console.log(`[Session ${sessionId}] Multiplayer game started (players: ${playerCount}, difficulty: ${difficulty}, maxEnemies: ${getMaxEnemies(session)})`);
+}
+
+export function updateMultiplayerPlayerCount(sessionId: string, playerCount: number) {
+	const session = getSession(sessionId);
+	if (!session) return;
+
+	session.playerCount = playerCount;
+	console.log(`[Session ${sessionId}] Player count updated: ${playerCount}, maxEnemies: ${getMaxEnemies(session)}`);
+}
+
+export function stopMultiplayerGame(sessionId: string) {
+	const session = getSession(sessionId);
+	if (!session) return;
+
+	resetSpawnTimer(session);
+	session.playing = false;
+	session.ennemies.length = 0;
+	deleteSession(sessionId);
+	console.log(`[Session ${sessionId}] Multiplayer game ended`);
 }
