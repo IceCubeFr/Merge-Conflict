@@ -1,5 +1,5 @@
 import { render } from "./credits.ts";
-import { initializeEventListeners } from "./Parameter.ts";
+import { initializeEventListeners, audio } from "./Parameter.ts";
 import { loadLeaderboard, renderLeaderboard } from "./leaderboard.ts";
 import { player } from "./game/gameRendering.ts";
 import { socket } from "./socket.ts";
@@ -590,6 +590,8 @@ socket.on("multiReconnected", (data: { player: MultiplayerPlayerData; config: Mu
 socket.on("multiGameEnded", (data: { stats: MultiplayerEndGameStats[]; reason: string }) => {
     stopGameTimer();
     setSpectatorMode(false);
+    audio.pause();
+    audio.currentTime = 0;
     displayMultiEndStats(data.stats);
     menuSelection("multi-end");
 });
@@ -724,6 +726,8 @@ quitButton?.addEventListener('click', (event) => {
     }
     setCurrentRoomId(null);
     resetCurrentGame();
+    audio.pause();
+    audio.currentTime = 0;
     allyHealthContainer?.classList.add("hidden");
     menuSelection("main");
     video?.setAttribute("src", "assets/DoomguyIsabelle.mp4");

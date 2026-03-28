@@ -14,6 +14,7 @@ import { socket } from "../socket.ts";
 import { menuSelection, bonusDisplayUpdate, isMultiplayerMode, isSpectatorMode, multiplayerPlayers, sendMultiPlayerDied, sendMultiEnemyKilled, sendMultiEnemyHurt, sendMultiHealthUpdate } from "../main.ts";
 import { isCoopMode, currentRoomId } from "../gameState.ts";
 import { updateHealth } from "./runManagement.ts";
+import { audio } from "../Parameter.ts";
 
 const skinSelect: HTMLSelectElement = document.querySelector('.skin-select')!;
 
@@ -379,6 +380,7 @@ function checkEnemyBulletsCollision() {
 						pauseAudio(ennemy_hit_sound);
 						pauseAudio(player_hurt_sound);
 						pauseAudio(bullet_shot_sound);
+						pauseAudio(audio);
 						resetRenderedGameState();
 					}
 				}
@@ -514,6 +516,7 @@ function drawEnnemies() {
 					pauseAudio(ennemy_hit_sound);
 					pauseAudio(player_hurt_sound);
 					pauseAudio(bullet_shot_sound);
+					pauseAudio(audio);
 					resetRenderedGameState();
 					return;
 				} else {
@@ -522,6 +525,7 @@ function drawEnnemies() {
 					pauseAudio(ennemy_hit_sound);
 					pauseAudio(player_hurt_sound);
 					pauseAudio(bullet_shot_sound);
+					pauseAudio(audio);
 					resetRenderedGameState();
 					return;
 				}

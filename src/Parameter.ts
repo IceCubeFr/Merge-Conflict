@@ -17,7 +17,7 @@ const settingsPanel = document.getElementById("settingsPanel") as HTMLDivElement
 const inputKeyboard = document.getElementById("inputKeyboard") as HTMLInputElement | null;
 const inputMouse = document.getElementById("inputMouse") as HTMLInputElement | null;
 const closeSettingsBtn = document.getElementById("close-settings") as HTMLButtonElement | null;
-const audio: HTMLAudioElement = document.querySelector('.game-background-music')!;
+export const audio: HTMLAudioElement = document.querySelector('.game-background-music')!;
 
 let appliedSettings: GameSettings = loadSettings();
 let draftSettings: GameSettings = { ...appliedSettings };
@@ -77,7 +77,7 @@ function applySettingsToMedia(settings: GameSettings): void {
     video.muted = settings.volume === 0;
     audio.muted = settings.volume === 0;
 
-    soundEffects.forEach((elt) => {
+    soundEffects.forEach((elt: HTMLAudioElement) => {
         elt.volume = settings.soundEffects;
     })
 }

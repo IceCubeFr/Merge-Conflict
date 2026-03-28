@@ -6,7 +6,7 @@ const arenaHeight = 720;
 const leftCleanupLimit = -100;
 const initialSpawnIntervalMs = 4000;
 const minimumSpawnIntervalMs = 700;
-const spawnAccelerationMs = 100;
+const spawnAccelerationMs = 300;
 const ENNEMI_RENDER_WIDTH = 64;
 const ENNEMI_RENDER_HEIGHT = 64;
 
@@ -165,14 +165,22 @@ function scheduleNextSpawn(session: GameSession, sessionId: string) {
 		if (session.ennemies.length < maxEnemies) {
 			spawnEnnemi(session, sessionId);
 		}
-
-		session.currentSpawnIntervalMs = Math.max(
-			minimumSpawnIntervalMs,
-			session.currentSpawnIntervalMs - spawnAccelerationMs,
-		);
 		scheduleNextSpawn(session, sessionId);
 	}, session.currentSpawnIntervalMs);
 }
+
+function increaseSpawnByTime() {
+	sessions.forEach((session) => {
+        if (!session.playing) return;
+
+        session.currentSpawnIntervalMs = Math.max(
+            minimumSpawnIntervalMs,
+            session.currentSpawnIntervalMs - spawnAccelerationMs 
+        );
+    });
+}
+
+setInterval(increaseSpawnByTime, 10000);
 
 function resetSpawnTimer(session: GameSession) {
 	if (session.spawnTimeout) {
