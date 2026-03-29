@@ -108,6 +108,7 @@ const multiLeaderboardBody = document.querySelector(".multi-leaderboard-body");
 const multiAlliesContainer = document.querySelector(".multi-allies-container");
 const multiAlliesList = document.querySelector(".multi-allies-list");
 const skinSelect: HTMLSelectElement = document.querySelector('.skin-select')!;
+const REPLAY_BUTTON_IMAGE_URL = "/assets/Button/RejouerJSae.png";
 
 let currentAttackTimeout: NodeJS.Timeout | null = null;
 let currentSpeedTimeout: NodeJS.Timeout | null = null;
@@ -121,7 +122,24 @@ function playVideoSafely() {
     videoPlaying = video.play().catch(() => undefined);
 }
 
+function applyReplayButtonImageIfAvailable() {
+    if (!(overBackButton instanceof HTMLButtonElement)) {
+        return;
+    }
+
+    const preview = new Image();
+    preview.onload = () => {
+        overBackButton.classList.add("rejouer-back-image");
+        overBackButton.setAttribute("aria-label", "Rejouer");
+    };
+    preview.onerror = () => {
+        overBackButton.classList.remove("rejouer-back-image");
+    };
+    preview.src = REPLAY_BUTTON_IMAGE_URL;
+}
+
 initializeEventListeners();
+applyReplayButtonImageIfAvailable();
 
 export function pauseVideo() {
     if (!video) return;

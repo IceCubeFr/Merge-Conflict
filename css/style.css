@@ -285,6 +285,27 @@ footer {
   box-shadow: 0 6px 20px rgba(0,0,0,0.3);
 }
 
+.rejouer-back.rejouer-back-image {
+  background-image: url("/assets/Button/RejouerJSae.png");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-color: transparent;
+  width: min(520px, 92vw);
+  height: 150px;
+  padding: 0;
+  color: transparent;
+  font-size: 0;
+  line-height: 0;
+  box-shadow: none;
+}
+
+.rejouer-back.rejouer-back-image:hover {
+  background-color: transparent;
+  box-shadow: none;
+  transform: translateY(-2px);
+}
+
 .difficulty-select, .skin-select {
   width: 100%;
 }
