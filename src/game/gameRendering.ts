@@ -21,6 +21,8 @@ export const PLAYER_RENDER_WIDTH = 56;
 export const PLAYER_RENDER_HEIGHT = 82;
 const ENNEMI_RENDER_WIDTH = 64;
 const ENNEMI_RENDER_HEIGHT = 64;
+const BOSS_IMAGE_ID = 3;
+const BOSS_RENDER_WIDTH = 220;
 const SERVER_ARENA_WIDTH = 1980;
 const SERVER_ARENA_HEIGHT = 720;
 const BONUS_ITEM_RENDER_WIDTH = 32;
@@ -35,7 +37,7 @@ export const bonus_pickup_sound = new Audio('../../assets/sounds/bonus_pickup.wa
 export const player: Player = new Player(0, 0);
 const image = new Map<string, HTMLImageElement>();
 export const bonusImage = new Image();
-const ennemiImages = [new Image(), new Image(), new	Image()];
+const ennemiImages = [new Image(), new Image(), new	Image(), new Image()];
 let ennemies: Ennemi[] = [];
 let activeBonuses: Bonus[] = [];
 let lastEmittedHealth = 3;
@@ -79,6 +81,7 @@ image.get('doomguy-orange')!.src = '/assets/character/doomGuy/orange.png';
 ennemiImages[0].src = '../../assets/character/ennemi/mob1/mob1.png';
 ennemiImages[1].src = '../../assets/character/ennemi/mob1/mob12.png';
 ennemiImages[2].src = '../../assets/character/ennemi/mob1/mob_tir.png'
+ennemiImages[3].src = '../../assets/character/ennemi/boss/Boss.png';
 player.models.push(image.get(skinSelect.value)!);
 player.models[0].addEventListener('load', () => {
 	requestAnimationFrame(render);
@@ -143,8 +146,25 @@ socket.on("enemyShoot", (data: { posX: number, posY: number }) => {
 
 	enemyBullets.push({
 		bx: renderX, 
-		by: renderY + (ENNEMI_RENDER_HEIGHT / 2) - (BULLET_RENDER_HEIGHT / 2)
+		by: renderY + (ENNEMI_RENDER_HEIGHT / 2) - (BULLET_RENDER_HEIGHT / 2),
+		speed: 7,
 	});
+});
+
+socket.on("bossShootPattern", (data: { posX: number, yPositions: number[] }) => {
+	const maxRenderX = Math.max(canvas.width - BOSS_RENDER_WIDTH, 0);
+	const renderX = Math.min((data.posX / SERVER_ARENA_WIDTH) * maxRenderX, maxRenderX);
+	const maxRenderY = Math.max(canvas.height - BULLET_RENDER_HEIGHT, 0);
+
+	for (let i = 0; i < data.yPositions.length; i++) {
+		const shotY = data.yPositions[i];
+		const renderY = Math.min((shotY / SERVER_ARENA_HEIGHT) * maxRenderY, maxRenderY);
+		enemyBullets.push({
+			bx: renderX,
+			by: renderY,
+			speed: 3.2,
+		});
+	}
 });
 
 export function resetRenderedGameState() {
@@ -310,18 +330,19 @@ function drawMultiplayerPlayers() {
 	});
 }
 
-function bulletsAreColliding(posX: number, posY: number) {
+function bulletsAreColliding(posX: number, posY: number, isBossTarget: boolean, ennemiWidth: number, ennemiHeight: number) {
 	for (let i = activeBullets.length - 1; i >= 0; i--) {
 		const balle = activeBullets[i];
 		const bulletCenterX = balle.bx + BULLET_RENDER_WIDTH / 2;
 		const bulletCenterY = balle.by + BULLET_RENDER_HEIGHT / 2;
-		const ennemiCenterX = posX + ENNEMI_RENDER_WIDTH / 2;
-		const ennemiCenterY = posY + ENNEMI_RENDER_HEIGHT / 2;
+		const ennemiCenterX = posX + ennemiWidth / 2;
+		const ennemiCenterY = posY + ennemiHeight / 2;
 		const diffX = Math.abs(bulletCenterX - ennemiCenterX);
 		const diffY = Math.abs(bulletCenterY - ennemiCenterY);
 
-		if (diffX < (BULLET_RENDER_WIDTH + ENNEMI_RENDER_WIDTH) / 2 &&
-			diffY < (BULLET_RENDER_HEIGHT + ENNEMI_RENDER_HEIGHT) / 2) {
+		if (isBossTarget
+			? diffX < (BULLET_RENDER_WIDTH + ennemiWidth) / 2
+			: diffX < (BULLET_RENDER_WIDTH + ennemiWidth) / 2 && diffY < (BULLET_RENDER_HEIGHT + ennemiHeight) / 2) {
 			activeBullets.splice(i, 1);
 			return true;
 		}
@@ -331,13 +352,14 @@ function bulletsAreColliding(posX: number, posY: number) {
 		const balle = secondPlayerBullets[i];
 		const bulletCenterX = balle.bx + BULLET_RENDER_WIDTH / 2;
 		const bulletCenterY = balle.by + BULLET_RENDER_HEIGHT / 2;
-		const ennemiCenterX = posX + ENNEMI_RENDER_WIDTH / 2;
-		const ennemiCenterY = posY + ENNEMI_RENDER_HEIGHT / 2;
+		const ennemiCenterX = posX + ennemiWidth / 2;
+		const ennemiCenterY = posY + ennemiHeight / 2;
 		const diffX = Math.abs(bulletCenterX - ennemiCenterX);
 		const diffY = Math.abs(bulletCenterY - ennemiCenterY);
 
-		if (diffX < (BULLET_RENDER_WIDTH + ENNEMI_RENDER_WIDTH) / 2 &&
-			diffY < (BULLET_RENDER_HEIGHT + ENNEMI_RENDER_HEIGHT) / 2) {
+		if (isBossTarget
+			? diffX < (BULLET_RENDER_WIDTH + ennemiWidth) / 2
+			: diffX < (BULLET_RENDER_WIDTH + ennemiWidth) / 2 && diffY < (BULLET_RENDER_HEIGHT + ennemiHeight) / 2) {
 			secondPlayerBullets.splice(i, 1);
 			return true;
 		}
@@ -444,21 +466,23 @@ function drawBonuses() {
         else if (bonus.posY > SERVER_ARENA_HEIGHT) {
             activeBonuses.splice(i, 1);
         }
-    }
+    }  
 }
 
 function drawEnnemies() {
-	const maxRenderX = Math.max(canvas.width - ENNEMI_RENDER_WIDTH, 0);
-	const maxRenderY = Math.max(canvas.height - ENNEMI_RENDER_HEIGHT, 0);
-
 	if (isSpectatorMode) {
 		for (let i = ennemies.length - 1; i >= 0; i--) {
 			const ennemi = ennemies[i];
 			if (!ennemi) continue;
-			const renderX = Math.min((ennemi.posX / SERVER_ARENA_WIDTH) * maxRenderX, maxRenderX + ENNEMI_RENDER_WIDTH);
-			const renderY = Math.min((ennemi.posY / SERVER_ARENA_HEIGHT) * maxRenderY, maxRenderY);
+			const isBossTarget = ennemi.imageId === BOSS_IMAGE_ID;
+			const ennemiWidth = isBossTarget ? BOSS_RENDER_WIDTH : ENNEMI_RENDER_WIDTH;
+			const ennemiHeight = isBossTarget ? canvas.height : ENNEMI_RENDER_HEIGHT;
+			const ennemiMaxRenderX = Math.max(canvas.width - ennemiWidth, 0);
+			const ennemiMaxRenderY = Math.max(canvas.height - ennemiHeight, 0);
+			const renderX = Math.min((ennemi.posX / SERVER_ARENA_WIDTH) * ennemiMaxRenderX, ennemiMaxRenderX + ennemiWidth);
+			const renderY = isBossTarget ? 0 : Math.min((ennemi.posY / SERVER_ARENA_HEIGHT) * ennemiMaxRenderY, ennemiMaxRenderY);
 			const ennemiImage = ennemiImages[ennemi.imageId] ?? ennemiImages[0];
-			context.drawImage(ennemiImage, renderX, renderY, ENNEMI_RENDER_WIDTH, ENNEMI_RENDER_HEIGHT);
+			context.drawImage(ennemiImage, renderX, renderY, ennemiWidth, ennemiHeight);
 		}
 		return;
 	}
@@ -467,10 +491,15 @@ function drawEnnemies() {
 		const ennemi = ennemies[i];
 		if (!ennemi) continue;
 
-		const renderX = Math.min((ennemi.posX / SERVER_ARENA_WIDTH) * maxRenderX, maxRenderX + ENNEMI_RENDER_WIDTH);
-		const renderY = Math.min((ennemi.posY / SERVER_ARENA_HEIGHT) * maxRenderY, maxRenderY);
+		const isBossTarget = ennemi.imageId === BOSS_IMAGE_ID;
+		const ennemiWidth = isBossTarget ? BOSS_RENDER_WIDTH : ENNEMI_RENDER_WIDTH;
+		const ennemiHeight = isBossTarget ? canvas.height : ENNEMI_RENDER_HEIGHT;
+		const ennemiMaxRenderX = Math.max(canvas.width - ennemiWidth, 0);
+		const ennemiMaxRenderY = Math.max(canvas.height - ennemiHeight, 0);
+		const renderX = Math.min((ennemi.posX / SERVER_ARENA_WIDTH) * ennemiMaxRenderX, ennemiMaxRenderX + ennemiWidth);
+		const renderY = isBossTarget ? 0 : Math.min((ennemi.posY / SERVER_ARENA_HEIGHT) * ennemiMaxRenderY, ennemiMaxRenderY);
 
-		if (bulletsAreColliding(renderX, renderY)) {
+		if (bulletsAreColliding(renderX, renderY, isBossTarget, ennemiWidth, ennemiHeight)) {
 			if (isMultiplayerMode) {
 				sendMultiEnemyHurt(i, player.projectileDamage);
 			} else {
@@ -496,12 +525,15 @@ function drawEnnemies() {
 			player.takeHealth();
 			updateHealth();
 			emitHealthUpdate();
-			ennemies.splice(i, 1);
 
-			if (isMultiplayerMode) {
-				sendMultiEnemyKilled(i);
-			} else {
-				socket.emit("enemyKilled", i);
+			if (!isBossTarget) {
+				ennemies.splice(i, 1);
+
+				if (isMultiplayerMode) {
+					sendMultiEnemyKilled(i);
+				} else {
+					socket.emit("enemyKilled", i);
+				}
 			}
 
 			if (!player.verifyHealth()) {
@@ -533,7 +565,7 @@ function drawEnnemies() {
 		}
 
 		const ennemiImage = ennemiImages[ennemi.imageId] ?? ennemiImages[0];
-		context.drawImage(ennemiImage, renderX, renderY, ENNEMI_RENDER_WIDTH, ENNEMI_RENDER_HEIGHT);
+		context.drawImage(ennemiImage, renderX, renderY, ennemiWidth, ennemiHeight);
 	}
 }
 

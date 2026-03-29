@@ -14,7 +14,7 @@ const overSummaryScore = document.querySelector(".over-summary-score");
 const healthContainer = document.querySelector(".health-container")!;
 const audio: HTMLAudioElement = document.querySelector('.game-background-music')!;
 
-const scoreAtDeath = [100, 200];
+const scoreAtDeath = [100, 200, 300, 10000];
 const DEFAULT_HEALTH = 3;
 
 let gameTimer: ReturnType<typeof setInterval> | undefined;
