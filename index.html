@@ -137,6 +137,7 @@
                 <button type="submit" class="credits">Crédits</button>
             </form>
         </footer>
+        <button type="button" class="rules-btn">Règles</button>
     </section>
     <section class="credits-section hidden">
         <div class="credits-main">
@@ -201,6 +202,35 @@
                     <tbody>
                     </tbody>
                 </table>
+            </article>
+            <button class="back-btn">Retour</button>
+        </div>
+    </section>
+    <section class="rules-section hidden">
+        <div class="rules-main">
+            <h1>Règles du jeu</h1>
+            <article class="glassmorphism rules-card">
+                <h2>Objectif</h2>
+                <p>Survivez le plus longtemps possible, éliminez les ennemis et maximisez votre score.</p>
+
+                <h2>Gameplay</h2>
+                <ul class="rules-list">
+                    <li>Les ennemis arrivent par vagues depuis la droite.</li>
+                    <li>En Medium et Hard, les vagues deviennent plus denses après le début de partie.</li>
+                    <li>Un boss apparaît périodiquement et bloque temporairement le spawn normal.</li>
+                    <li>Le boss occupe toute la hauteur: vos tirs le touchent quelle que soit votre position verticale.</li>
+                    <li>Après la mort du boss, le jeu repart sur une reprise de vague propre.</li>
+                </ul>
+
+                <h2>Bonus</h2>
+                <ul class="rules-list">
+                    <li><strong>Attack</strong> (<img class="rules-bonus-icon" src="/assets/attack_up.png" alt="bonus attaque">): dégâts de projectiles augmentés temporairement.</li>
+                    <li><strong>Speed</strong> (<img class="rules-bonus-icon" src="/assets/speed_up.png" alt="bonus vitesse">): cadence de tir augmentée temporairement.</li>
+                    <li><strong>Invincibility</strong> (<img class="rules-bonus-icon" src="/assets/invincibility_up.png" alt="bonus invincibilite">): invulnérabilité temporaire.</li>
+                </ul>
+
+                <h2>Score</h2>
+                <p>Votre score dépend du temps de survie et des ennemis éliminés. Le boss rapporte un gros bonus.</p>
             </article>
             <button class="back-btn">Retour</button>
         </div>

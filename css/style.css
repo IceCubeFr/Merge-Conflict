@@ -274,6 +274,30 @@ footer {
   box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }
 
+.rules-btn {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  padding: 12px 30px;
+  border: none;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  z-index: 2;
+}
+
+.rules-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+}
+
 .starter-btn {
   font-size: 22px;
   width: 30vw;
@@ -331,6 +355,43 @@ label {
   align-items: center;
   justify-content: center;
   padding-bottom: 10vh;
+}
+
+.rules-main {
+  display: flex;
+  gap: 30px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 10vh;
+}
+
+.rules-card {
+  width: min(900px, 92vw);
+  max-height: 62vh;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+.rules-card h2 {
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+.rules-list {
+  margin-top: 0;
+  margin-bottom: 22px;
+  padding-left: 20px;
+}
+
+.rules-list li {
+  margin-bottom: 8px;
+}
+
+.rules-bonus-icon {
+  vertical-align: middle;
+  height: 22px;
+  margin: 0 4px;
 }
 
 .glassmorphism {

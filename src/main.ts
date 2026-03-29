@@ -46,6 +46,7 @@ const starterBtn = document.querySelector(".starter-btn");
 const starterSection = document.querySelector(".starter");
 const mainMenuSection = document.querySelector("section.main-menu");
 const creditsSection = document.querySelector(".credits-section")!;
+const rulesSection = document.querySelector(".rules-section")!;
 const leaderBoardSection = document.querySelector('.leaderboard-section')!;
 const overSection = document.querySelector(".rejouer-section")!;
 const gameSection = document.querySelector(".game-section")!;
@@ -71,6 +72,7 @@ const video = document.querySelector('.back-video') as HTMLVideoElement;
 const settingsBtn = document.querySelectorAll('.settingsBtn');
 const leaderboardTable = document.querySelector('.leaderboard-section table tbody');
 const leaderboardBtn = document.querySelector('.leaderboard.game-btn');
+const rulesBtn = document.querySelector(".rules-btn");
 const pseudoInput = document.querySelector<HTMLInputElement>(".pseudo");
 const pseudoDisplay = document.querySelector(".pseudo-displayer");
 const bonusDisplay = document.querySelector(".game-stat-bonus");
@@ -759,6 +761,11 @@ leaderboardBtn?.addEventListener('click', (event) => {
     });
 });
 
+rulesBtn?.addEventListener('click', (event) => {
+    event.preventDefault();
+    menuSelection("rules");
+});
+
 starterBtn?.addEventListener('click', (event) => {
     event.preventDefault();
     menuSelection("main");
@@ -771,6 +778,7 @@ export function menuSelection(menu: string) {
     overSection.classList.add("hidden");
     settingsBtn[0]?.classList.add("hidden");
     creditsSection.classList.add("hidden");
+    rulesSection.classList.add("hidden");
     leaderBoardSection.classList.add("hidden");
     gameSection.classList.add('hidden');
     coopMenuSection.classList.add("hidden");
@@ -799,6 +807,9 @@ export function menuSelection(menu: string) {
             break;
         case "leaderboard":
             leaderBoardSection.classList.remove("hidden");
+            break;
+        case "rules":
+            rulesSection.classList.remove("hidden");
             break;
         case "game":
             gameSection.classList.remove("hidden");
