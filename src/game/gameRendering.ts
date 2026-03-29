@@ -42,6 +42,7 @@ let ennemies: Ennemi[] = [];
 let activeBonuses: Bonus[] = [];
 let lastEmittedHealth = 3;
 const pendingBossShots: ReturnType<typeof setTimeout>[] = [];
+let bossIncomingWarningUntilMs = 0;
 
 export let secondPlayer: SecondPlayer | null = null;
 const secondPlayerImage = new Image();
@@ -150,7 +151,7 @@ socket.on("enemyShoot", (data: { posX: number, posY: number }) => {
 	enemyBullets.push({
 		bx: renderX, 
 		by: renderY + (ENNEMI_RENDER_HEIGHT / 2) - (BULLET_RENDER_HEIGHT / 2),
-		speed: 7,
+		speed: 5.7,
 	});
 });
 
@@ -175,6 +176,12 @@ socket.on("bossShootPattern", (data: { posX: number, yPositions: number[], shotD
 	}
 });
 
+socket.on("bossIncomingWarning", (data: { remainingMs?: number }) => {
+	const duration = Math.max(0, data.remainingMs ?? 5000);
+	bossIncomingWarningUntilMs = Date.now() + duration;
+	console.log(`Client: bossIncomingWarning received, duration=${duration}ms`);
+});
+
 export function resetRenderedGameState() {
 	ennemies = [];
 	player.health = 3;
@@ -190,6 +197,7 @@ export function resetRenderedGameState() {
 		clearTimeout(pendingBossShots[i]);
 	}
 	pendingBossShots.length = 0;
+	bossIncomingWarningUntilMs = 0;
 	resetBullets();
 }
 
@@ -253,8 +261,27 @@ function render() {
 	enemyBullets.forEach(balle => {
 		context.drawImage(bullet, balle.bx, balle.by, BULLET_RENDER_WIDTH, BULLET_RENDER_HEIGHT)
 	});
+	drawBossIncomingWarning();
 	checkEnemyBulletsCollision();
 	requestAnimationFrame(render);
+}
+
+function drawBossIncomingWarning() {
+	if (Date.now() > bossIncomingWarningUntilMs) return;
+	if (Math.floor(Date.now() / 250) % 2 === 0) return;
+
+	context.save();
+	context.font = "bold 44px Arial";
+	context.textAlign = "right";
+	context.textBaseline = "middle";
+	context.strokeStyle = "#120000";
+	context.fillStyle = "#ff3b3b";
+	context.lineWidth = 5;
+	const textX = canvas.width - 20;
+	const textY = canvas.height * 0.5;
+	context.strokeText("BOSS IMMINENT !", textX, textY);
+	context.fillText("BOSS IMMINENT !", textX, textY);
+	context.restore();
 }
 
 function drawPlayerLabel(renderX: number, renderY: number, label: string) {

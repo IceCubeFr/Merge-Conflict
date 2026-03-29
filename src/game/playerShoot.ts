@@ -108,7 +108,7 @@ function updateBulletArray(bulletsArray: { bx: number, by: number, speed?: numbe
 export function updateBullets() {
     updateBulletArray(activeBullets, player.shootSpeed, 1);
     updateBulletArray(secondPlayerBullets, player.shootSpeed, 1);
-    updateBulletArray(enemyBullets, 7, -1, true);
+    updateBulletArray(enemyBullets, 5.7, -1, true);
 }
 export function resetBullets() {
     activeBullets.length = 0;
