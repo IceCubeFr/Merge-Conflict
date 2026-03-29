@@ -104,7 +104,7 @@ function deleteSession(sessionId: string) {
 		sessions.delete(sessionId);
 	}
 }
-
+ 
 function getBossStunChance(session: GameSession) {
 	return session.isMultiplayer ? BOSS_STUN_CHANCE_MULTIPLAYER : BOSS_STUN_CHANCE;
 }

@@ -22,6 +22,14 @@ export const audio: HTMLAudioElement = document.querySelector('.game-background-
 let appliedSettings: GameSettings = loadSettings();
 let draftSettings: GameSettings = { ...appliedSettings };
 
+function sanitizeUnitValue(value: unknown, fallback: number): number {
+    const numericValue = Number(value);
+    if (!Number.isFinite(numericValue)) {
+        return fallback;
+    }
+    return Math.min(1, Math.max(0, numericValue));
+}
+
 function loadSettings(): GameSettings {
     const rawSettings = localStorage.getItem(SETTINGS_STORAGE_KEY);
     if (!rawSettings) {
@@ -31,12 +39,8 @@ function loadSettings(): GameSettings {
     try {
         const parsed = JSON.parse(rawSettings) as Partial<GameSettings>;
         const inputMode = parsed.inputMode === "mouse" ? "mouse" : "keyboard";
-        const volume = Number.isFinite(parsed.volume)
-            ? Math.min(1, Math.max(0, parsed.volume as number))
-            : DEFAULT_SETTINGS.volume;
-        const soundEffects = Number.isFinite(parsed.volume)
-            ? Math.min(1, Math.max(0, parsed.soundEffects as number))
-            : DEFAULT_SETTINGS.soundEffects;
+        const volume = sanitizeUnitValue(parsed.volume, DEFAULT_SETTINGS.volume);
+        const soundEffects = sanitizeUnitValue(parsed.soundEffects, DEFAULT_SETTINGS.soundEffects);
 
         return {
             volume,
@@ -72,13 +76,16 @@ function applySettingsToMedia(settings: GameSettings): void {
         return;
     }
 
-    video.volume = settings.volume;
-    audio.volume = settings.volume;
-    video.muted = settings.volume === 0;
-    audio.muted = settings.volume === 0;
+    const mediaVolume = sanitizeUnitValue(settings.volume, DEFAULT_SETTINGS.volume);
+    const effectsVolume = sanitizeUnitValue(settings.soundEffects, DEFAULT_SETTINGS.soundEffects);
+
+    video.volume = mediaVolume;
+    audio.volume = mediaVolume;
+    video.muted = mediaVolume === 0;
+    audio.muted = mediaVolume === 0;
 
     soundEffects.forEach((elt: HTMLAudioElement) => {
-        elt.volume = settings.soundEffects;
+        elt.volume = effectsVolume;
     })
 }
 

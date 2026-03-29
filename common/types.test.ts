@@ -88,7 +88,7 @@ describe('Player', () => {
 
 describe('Ennemi', () => {
     it('should initialize with default values', () => {
-        const ennemi = new Ennemi(100, 200);
+        const ennemi = new Ennemi(100, 200, 1, 1, 0);
         assert.equal(ennemi.posX, 100);
         assert.equal(ennemi.posY, 200);
         assert.equal(ennemi.health, 1);
@@ -102,7 +102,7 @@ describe('Ennemi', () => {
     });
 
     it('move should decrease posX by 3', () => {
-        const ennemi = new Ennemi(100, 50);
+        const ennemi = new Ennemi(100, 50, 1, 1, 0);
         ennemi.move();
         assert.equal(ennemi.posX, 97);
         ennemi.move();
