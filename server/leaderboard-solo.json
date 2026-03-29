@@ -19,6 +19,12 @@
   },
   {
     "pseudo": "Guest",
+    "score": 21670,
+    "date": "2026-03-29T21:32:41.890Z",
+    "mode": "solo"
+  },
+  {
+    "pseudo": "Guest",
     "score": 14205,
     "date": "2026-03-29T17:55:46.546Z",
     "mode": "solo"
@@ -51,18 +57,6 @@
     "pseudo": "Guest",
     "score": 9175,
     "date": "2026-03-26T21:04:54.850Z",
-    "mode": "solo"
-  },
-  {
-    "pseudo": "Guest",
-    "score": 6490,
-    "date": "2026-03-20T07:46:02.431Z",
-    "mode": "solo"
-  },
-  {
-    "pseudo": "bober",
-    "score": 4265,
-    "date": "2026-03-21T10:53:31.149Z",
     "mode": "solo"
   }
 ]

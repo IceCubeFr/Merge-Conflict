@@ -23,7 +23,7 @@ export const PLAYER_RENDER_HEIGHT = 82;
 const ENNEMI_RENDER_WIDTH = 64;
 const ENNEMI_RENDER_HEIGHT = 64;
 const BOSS_IMAGE_ID = 3;
-const BOSS_RENDER_WIDTH = 220;
+const BOSS_RENDER_WIDTH = 250;
 const SERVER_ARENA_WIDTH = 1980;
 const SERVER_ARENA_HEIGHT = 720;
 const BONUS_ITEM_RENDER_WIDTH = 32;
@@ -159,7 +159,8 @@ socket.on("enemyShoot", (data: { posX: number, posY: number }) => {
 socket.on("bossShootPattern", (data: { posX: number, yPositions: number[], shotDelays?: number[] }) => {
 	console.log(`Client: bossShootPattern received lanes=${data.yPositions.length}, delayed=${Boolean(data.shotDelays?.length)}`);
 	const maxRenderX = Math.max(canvas.width - BOSS_RENDER_WIDTH, 0);
-	const renderX = Math.min((data.posX / SERVER_ARENA_WIDTH) * maxRenderX, maxRenderX);
+	const bossServerRangeX = Math.max(SERVER_ARENA_WIDTH - BOSS_RENDER_WIDTH, 1);
+	const renderX = Math.min((data.posX / bossServerRangeX) * maxRenderX, maxRenderX);
 	const maxRenderY = Math.max(canvas.height - BULLET_RENDER_HEIGHT, 0);
 
 	for (let i = 0; i < data.yPositions.length; i++) {
@@ -521,7 +522,10 @@ function drawEnnemies() {
 			const ennemiHeight = isBossTarget ? canvas.height : ENNEMI_RENDER_HEIGHT;
 			const ennemiMaxRenderX = Math.max(canvas.width - ennemiWidth, 0);
 			const ennemiMaxRenderY = Math.max(canvas.height - ennemiHeight, 0);
-			const renderX = Math.min((ennemi.posX / SERVER_ARENA_WIDTH) * ennemiMaxRenderX, ennemiMaxRenderX + ennemiWidth);
+			const bossServerRangeX = Math.max(SERVER_ARENA_WIDTH - BOSS_RENDER_WIDTH, 1);
+			const renderX = isBossTarget
+				? Math.min((ennemi.posX / bossServerRangeX) * ennemiMaxRenderX, ennemiMaxRenderX)
+				: Math.min((ennemi.posX / SERVER_ARENA_WIDTH) * ennemiMaxRenderX, ennemiMaxRenderX + ennemiWidth);
 			const renderY = isBossTarget ? 0 : Math.min((ennemi.posY / SERVER_ARENA_HEIGHT) * ennemiMaxRenderY, ennemiMaxRenderY);
 			const ennemiImage = ennemiImages[ennemi.imageId] ?? ennemiImages[0];
 			context.drawImage(ennemiImage, renderX, renderY, ennemiWidth, ennemiHeight);
@@ -538,7 +542,10 @@ function drawEnnemies() {
 		const ennemiHeight = isBossTarget ? canvas.height : ENNEMI_RENDER_HEIGHT;
 		const ennemiMaxRenderX = Math.max(canvas.width - ennemiWidth, 0);
 		const ennemiMaxRenderY = Math.max(canvas.height - ennemiHeight, 0);
-		const renderX = Math.min((ennemi.posX / SERVER_ARENA_WIDTH) * ennemiMaxRenderX, ennemiMaxRenderX + ennemiWidth);
+		const bossServerRangeX = Math.max(SERVER_ARENA_WIDTH - BOSS_RENDER_WIDTH, 1);
+		const renderX = isBossTarget
+			? Math.min((ennemi.posX / bossServerRangeX) * ennemiMaxRenderX, ennemiMaxRenderX)
+			: Math.min((ennemi.posX / SERVER_ARENA_WIDTH) * ennemiMaxRenderX, ennemiMaxRenderX + ennemiWidth);
 		const renderY = isBossTarget ? 0 : Math.min((ennemi.posY / SERVER_ARENA_HEIGHT) * ennemiMaxRenderY, ennemiMaxRenderY);
 
 		if (bulletsAreColliding(renderX, renderY, isBossTarget, ennemiWidth, ennemiHeight)) {
